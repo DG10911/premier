@@ -672,7 +672,7 @@ function setLang(l){ const el=document.getElementById('lang'); el.value=l; el.di
 
 function runDemo(){
   document.getElementById('start').style.display='none';
-  document.getElementById('play').style.display='none';
+  document.getElementById('play').style.visibility='hidden';
   const el=document.createElement('div'); el.id='demobanner'; el.className='demobanner';
   document.body.appendChild(el);
   demoT0 = performance.now();
