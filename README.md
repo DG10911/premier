@@ -37,7 +37,7 @@ Nothing is generated without a number behind it. The narrative agents can only
 | **2. Interpret** | `engine/analytics.py` | Expected Threat (learned from the match's own pass network), xG, ΔxT, momentum, win probability, salience. |
 | **3. Explain** | `engine/perception.py` | Multi-agent layer: Salience → Explain → Glyph → Haptic → Spatial → **Guardrail (veto)** → Director. Grounded captions. |
 | **3b. Audit** | `engine/verify.py` | **Verification rail.** Every cue carries a typed fact; a claim airs only if actor, team, type, outcome and revision match the evidence available at the viewer's clock. Supports **live corrections** (a goal overturned by VAR). |
-| **4. Render** | `web/app/index.html` | Synchronised overlay: animated pitch, glyphs, captions, evidence chips, verdict, HUD, momentum, **haptic pad** + real device vibration. |
+| **4. Render** | `web/app/` | Real-3D canvas pitch (perspective camera, mown turf, floodlight pools, depth-sorted player discs), procedural stadium scene, broadcast score bug, lower-third graphics, kinetics, momentum ribbon, **haptic pad** + real device vibration. |
 | **5. Personalize** | `web/app/index.html` | **Mode** (Accessible · Casual · Analyst), **Language** (en/es/fr/sw), **Focus** (whole match · club · player). |
 
 ## The verification rail (our differentiator)
@@ -92,7 +92,10 @@ engine/analytics.py    xT / xG / momentum / win-prob        (Interpret)
 engine/perception.py   multi-agent perception compiler      (Explain)
 engine/verify.py       typed-fact verification rail         (Audit)
 engine/build.py        pipeline runner -> web/app/data.js    (Render prep)
-web/app/index.html     accessible overlay + haptics + audit  (Render + Personalize)
+web/app/index.html     broadcast console: graphics, haptics, audit (Render + Personalize)
+web/app/pitch.js       real-3D canvas pitch renderer (camera projection)
+web/app/scene.js       procedural stadium scene (crowd, beams, flash)
+web/app/data.js        the compiled bundle the console loads
 tests/                 integrity, verification & bundle tests
 ```
 

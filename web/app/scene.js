@@ -37,18 +37,18 @@
 
     /* ---------- crowd bokeh ---------- */
     crowd = [];
-    const rows = 26;
+    const rows = 22;
     for (let r = 0; r < rows; r++) {
       const ry = horizon - 6 - r * (H * 0.0125);
       const span = W * (1.06 + r * 0.012);
-      const count = Math.floor(span / 11);
+      const count = Math.floor(span / 17);
       for (let i = 0; i < count; i++) {
         const x = (W - span) / 2 + (i / count) * span + rand(-4, 4);
         const warm = Math.random();
         crowd.push({
           x, y: ry + rand(-2.5, 2.5),
-          r: rand(0.8, 2.4),
-          a: rand(0.18, 0.78) * (1 - r / rows * 0.45),
+          r: rand(0.6, 1.7),
+          a: rand(0.05, 0.26) * (1 - r / rows * 0.45),
           hue: warm > 0.82 ? '255,196,120' : warm > 0.62 ? '150,200,255' : '190,215,255',
           tw: rand(0, Math.PI * 2),
           sp: rand(0.4, 1.5)
@@ -88,7 +88,7 @@
 
     // distant city glow
     const city = s.createRadialGradient(W * 0.5, horizon, 10, W * 0.5, horizon, W * 0.7);
-    city.addColorStop(0, 'rgba(60,110,190,0.16)');
+    city.addColorStop(0, 'rgba(60,110,190,0.10)');
     city.addColorStop(1, 'rgba(0,0,0,0)');
     s.fillStyle = city;
     s.fillRect(0, 0, W, horizon);
@@ -112,8 +112,8 @@
 
     // pitch haze (lower half)
     const pitch = s.createLinearGradient(0, horizon, 0, H);
-    pitch.addColorStop(0, 'rgba(10,34,24,0.92)');
-    pitch.addColorStop(0.5, 'rgba(6,24,17,0.96)');
+    pitch.addColorStop(0, 'rgba(6,20,15,0.94)');
+    pitch.addColorStop(0.5, 'rgba(4,14,11,0.97)');
     pitch.addColorStop(1, 'rgba(3,12,9,1)');
     s.fillStyle = pitch;
     s.fillRect(0, horizon, W, H - horizon);
