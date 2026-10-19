@@ -15,8 +15,14 @@
 
 ## What it does
 
-ROAR ingests a live stream of synthetic football events and compiles them, through
-a real multi-agent pipeline, into **cues** — synchronised moments, each carrying:
+ROAR turns a synthetic match into a **story you can read**: 18 numbered moments,
+each with a clear **outcome**, the **score change**, a plain-language explanation,
+and the **evidence** behind it. Click any moment to replay it on a 3D pitch; the
+ball travels, the outcome lands, and the verification rail checks the claim in
+front of you.
+
+Under the hood, synthetic events are compiled through a real multi-agent pipeline
+into **cues** — synchronised moments, each carrying:
 
 | Field | Purpose |
 |---|---|

@@ -66,6 +66,126 @@ def _correction_cue(goal_ev, corrected, meta):
     }
 
 
+# ---------------------------------------------------------------- moments
+OUTCOME_LABEL = {
+    ("shot", "goal"): "GOAL",
+    ("shot", "saved"): "SAVED BY KEEPER",
+    ("shot", "blocked"): "BLOCKED",
+    ("shot", "off_target"): "OFF TARGET",
+    ("tackle", "won"): "TACKLE WON",
+    ("interception", "won"): "INTERCEPTION",
+    ("correction", "disallowed"): "GOAL OVERTURNED",
+}
+
+
+def _score_at(events, t, inclusive=False):
+    """(home, away) goals scored before t."""
+    h = a = 0
+    for e in events:
+        if e["type"] == "goal" and e.get("outcome") == "scored":
+            ok = (e["t"] <= t) if inclusive else (e["t"] < t)
+            if not ok:
+                continue
+            if e["team"] == "home":
+                h += 1
+            else:
+                a += 1
+    return h, a
+
+
+def build_moments(analysed: dict, corrected=None) -> list:
+    """The story of the match: only the moments that changed something."""
+    events = analysed["events"]
+    meta = analysed["meta"]
+
+    shots = [e for e in events if e["type"] == "shot"]
+    goals = [e for e in shots if e.get("outcome") == "goal"]
+    big = [e for e in shots if e.get("outcome") != "goal" and (e.get("xg") or 0) >= 0.08]
+    duels = sorted([e for e in events if e["type"] in ("tackle", "interception")],
+                   key=lambda e: -(e.get("xt") or 0))[:3]
+
+    picked = sorted(goals + big + duels, key=lambda e: e["t"])
+    if len(picked) > 18:                       # keep the story readable
+        keep = set(id(x) for x in goals + duels)
+        extra = sorted([e for e in picked if id(e) not in keep],
+                       key=lambda e: -(e.get("xg") or 0))[:18 - len(keep)]
+        picked = sorted(goals + duels + extra, key=lambda e: e["t"])
+
+    best_xg = 0.0
+    out = []
+    for e in picked:
+        is_home = e["team"] == "home"
+        xg = e.get("xg") or 0.0
+        best_so_far = xg > best_xg and xg >= 0.10
+        best_xg = max(best_xg, xg)
+
+        bh, ba = _score_at(events, e["t"])
+        ah, aa = bh, ba
+        if e["type"] == "shot" and e.get("outcome") == "goal":
+            if is_home:
+                ah += 1
+            else:
+                aa += 1
+
+        outcome = OUTCOME_LABEL.get((e["type"], e.get("outcome")), (e.get("outcome") or "").upper())
+        # a VAR correction lands on the goal event; match it to its shot moment
+        overturned = bool(corrected) and e["type"] == "shot" and e.get("outcome") == "goal" \
+            and abs(e["t"] - corrected["t"]) < 2.0 and e["team"] == corrected["team"]
+        if overturned:
+            outcome = "GOAL OVERTURNED"
+
+        team_name = meta["home"] if is_home else meta["away"]
+        player = e.get("player", "—")
+
+        if overturned:
+            title = f"{player} scores — later struck off by VAR"
+        elif e["type"] == "shot" and e.get("outcome") == "goal":
+            title = f"{player} scores for {team_name}"
+        elif e["type"] == "shot" and e.get("outcome") == "saved":
+            title = f"{player} forces a save"
+        elif e["type"] == "shot" and e.get("outcome") == "blocked":
+            title = f"{player}'s shot is blocked"
+        elif e["type"] == "shot":
+            title = f"{player} shoots wide"
+        elif e["type"] == "tackle":
+            title = f"{player} wins the ball back"
+        else:
+            title = f"{player} cuts out the pass"
+
+        bits = []
+        if e["type"] == "shot":
+            bits.append(f"{xg:.2f} xG")
+            if best_so_far:
+                bits.append("best chance so far")
+            if overturned:
+                bits.append("struck off after review")
+            elif (ah, aa) != (bh, ba):
+                bits.append(f"score {bh}–{ba} to {ah}–{aa}")
+        else:
+            bits.append(f"{e.get('xt', 0):.3f} xT in the danger zone")
+            bits.append("possession turned over")
+        if e.get("under_pressure"):
+            bits.append("under pressure")
+
+        out.append({
+            "i": len(out) + 1,
+            "t": e["t"], "minute": f"{int(e['t'] // 60)}'",
+            "kind": e["type"], "team": e["team"], "player": player,
+            "outcome": outcome, "overturned": overturned,
+            "title": title, "why": " · ".join(bits),
+            "xg": round(xg, 3) if e["type"] == "shot" else None,
+            "xt": round(e.get("xt", 0), 4),
+            "score_before": f"{bh}–{ba}", "score_after": f"{ah}–{aa}",
+            "event_id": e["id"],
+            "verify_event_id": corrected["id"] if overturned else e["id"],
+            "revision": 1,
+            "x": e["x"], "y": e["y"],
+            "end_x": e.get("end_x"), "end_y": e.get("end_y"),
+            "mirror": (not is_home),
+        })
+    return out
+
+
 def build_bundle(seed: int = 42) -> dict:
     raw = generate(seed=seed)
     analysed = analyse(raw)
@@ -85,8 +205,10 @@ def build_bundle(seed: int = 42) -> dict:
     # 2) correction scenario: the last goal is overturned by VAR after 90s
     goals = [e for e in analysed["events"] if e["type"] == "goal" and e.get("outcome") == "scored"]
     correction = None
+    corrected = None
     if goals:
         g = goals[-1]
+        corrected = {"id": g["id"], "t": g["t"], "player": g.get("player"), "team": g["team"]}
         corrected = dict(by_id[g["id"]])
         corrected["revision"] = 2
         corrected["arrival"] = round(g["t"] + 90, 1)
@@ -128,6 +250,7 @@ def build_bundle(seed: int = 42) -> dict:
         "cues": cues,
         "correction": correction,
         "audit": audit,
+        "moments": build_moments(analysed, corrected),
     }
 
 

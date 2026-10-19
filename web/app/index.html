@@ -72,7 +72,11 @@
     border:1px solid var(--line);border-radius:var(--pill);padding:5px 11px;background:rgba(10,16,28,.6)}
   .tagchip.volt{color:var(--volt);border-color:rgba(212,255,63,.35)}
 
-  .chrome-right{margin-left:auto;display:flex;align-items:center;gap:20px}
+  .chrome-right{margin-left:auto;display:flex;align-items:center;gap:18px}
+  .mstate{display:flex;align-items:center;gap:18px}
+  .mstate span{display:flex;flex-direction:column;align-items:flex-end;gap:1px;
+    font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim2);font-weight:600}
+  .mstate b{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:0;color:var(--txt)}
   .audit{display:flex;align-items:center;gap:9px;padding:6px 13px;border-radius:var(--pill);
     border:1px solid rgba(212,255,63,.32);background:rgba(212,255,63,.07);
     font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--volt);font-weight:600}
@@ -188,7 +192,7 @@
   .cta:hover{transform:translateY(-2px);box-shadow:0 16px 40px rgba(212,255,63,.4)}
 
   /* ================= verification rail ================= */
-  .rail{display:flex;flex-direction:column;min-height:0;background:linear-gradient(180deg,rgba(8,13,24,.72),rgba(6,10,18,.86));
+  .rail{display:grid;grid-template-rows:auto minmax(0,1fr) auto;min-height:0;overflow:hidden;background:linear-gradient(180deg,rgba(8,13,24,.72),rgba(6,10,18,.86));
     backdrop-filter:blur(16px)}
   .rail-head{display:flex;align-items:center;gap:9px;padding:13px 18px;border-bottom:1px solid var(--line)}
   .rail-head h3{margin:0;font-family:var(--cond);font-weight:700;font-size:12.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--txt)}
@@ -285,6 +289,43 @@
   .pipe .st.done{color:var(--dim)}
   .pipe .ar{color:#26334e}
 
+
+  .story{overflow-y:auto;overflow-x:hidden;min-height:0;padding:8px;overscroll-behavior:contain}
+  .sitem{display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:center;
+    padding:10px 11px;border-radius:10px;cursor:pointer;border:1px solid transparent;
+    transition:.16s var(--ease);text-align:left;width:100%}
+  .sitem:hover{background:rgba(255,255,255,.035);border-color:var(--line)}
+  .sitem.on{background:rgba(212,255,63,.08);border-color:rgba(212,255,63,.4)}
+  .sitem .num{font-family:var(--cond);font-weight:800;font-size:15px;color:var(--dim2);text-align:center}
+  .sitem.on .num{color:var(--volt)}
+  .sitem .tt{font-size:12.5px;line-height:1.35;color:var(--txt);font-weight:500;
+    overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  .sitem .sub{font-size:10px;color:var(--dim2);margin-top:3px;font-family:var(--mono)}
+  .sitem .oc{font-family:var(--cond);font-weight:800;font-size:10px;letter-spacing:.1em;
+    padding:4px 8px;border-radius:5px;white-space:nowrap;border:1px solid var(--line2);color:var(--dim)}
+  .sitem .oc.goal{background:rgba(212,255,63,.16);border-color:rgba(212,255,63,.55);color:var(--volt)}
+  .sitem .oc.var{background:rgba(255,77,109,.14);border-color:rgba(255,77,109,.5);color:var(--danger)}
+  .sitem .oc.save{background:rgba(56,217,240,.12);border-color:rgba(56,217,240,.4);color:var(--home)}
+
+  .rail-foot{border-top:1px solid var(--line);display:flex;flex-direction:column;min-height:0;background:rgba(6,10,18,.6)}
+  .rail-head.inner{border-top:none;border-bottom:1px solid var(--line)}
+
+  .outcome{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.9);z-index:6;
+    display:none;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
+  .outcome.on{display:flex;animation:ocpop .5s var(--ease)}
+  @keyframes ocpop{0%{opacity:0;transform:translate(-50%,-50%) scale(.82)}60%{opacity:1;transform:translate(-50%,-50%) scale(1.04)}100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+  .outcome b{font-family:var(--cond);font-weight:800;font-size:clamp(34px,5.6vw,74px);letter-spacing:.04em;line-height:1;
+    color:var(--volt);text-shadow:0 0 60px rgba(212,255,63,.55),0 6px 30px rgba(0,0,0,.8)}
+  .outcome.var b{color:var(--danger);text-shadow:0 0 60px rgba(255,77,109,.5),0 6px 30px rgba(0,0,0,.8)}
+  .outcome.save b{color:var(--home);text-shadow:0 0 60px rgba(56,217,240,.5),0 6px 30px rgba(0,0,0,.8)}
+  .outcome.miss b{color:#dbe6f7;text-shadow:0 6px 30px rgba(0,0,0,.8)}
+  .outcome span{font-family:var(--mono);font-size:13px;color:var(--txt);background:rgba(4,7,14,.8);
+    border:1px solid var(--line2);border-radius:999px;padding:5px 14px}
+
+  .step .lbl{}
+  .chain{padding:14px 18px}
+  .step{padding-bottom:13px}
+
   /* demo overlays */
   .democard{position:fixed;inset:0;z-index:70;display:flex;flex-direction:column;align-items:center;justify-content:center;
     gap:14px;text-align:center;padding:40px;opacity:0;pointer-events:none;transition:opacity .5s var(--ease);
@@ -333,6 +374,11 @@
       <span class="tagchip volt">No real data</span>
     </div>
     <div class="chrome-right">
+      <div class="mstate">
+        <span><b id="xgHome2" style="color:var(--home)">0.00</b>xG home</span>
+        <span><b id="xgAway2" style="color:var(--away)">0.00</b>xG away</span>
+        <span><b id="wpVal">50%</b>win</span>
+      </div>
       <span class="audit" id="auditPill"><span class="beacon"></span><span id="auditBadge">Verified</span></span>
     </div>
   </header>
@@ -341,6 +387,7 @@
     <section class="broadcast" aria-label="Live match">
       <canvas id="pitch" role="img" aria-label="Live pitch, synthetic match"></canvas>
 
+      <div class="outcome" id="outcome" aria-hidden="true"><b id="outcomeText">GOAL</b><span id="outcomeScore"></span></div>
       <div class="sweep" id="sweep" aria-hidden="true"></div>
       <div class="ribbon" aria-hidden="true"></div>
       <canvas id="mom" aria-hidden="true"></canvas>
@@ -366,62 +413,45 @@
       <div class="start" id="start">
         <span class="eyebrow">Microsoft × Premier League · Inside the Game</span>
         <h2>FEEL THE ROAR</h2>
-        <p>Sound off — still felt. Every on-screen claim is a typed fact tied to its source event and revision, and checked before it can air.</p>
+        <p><b style="color:var(--txt);font-weight:600">18 moments that decided this match.</b> Click any moment to replay it — you see what happened, why it mattered, and the proof behind the claim.</p>
         <button class="cta" id="startBtn">
           <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
           Start synthetic replay
         </button>
-        <p class="sub">Open on a phone to feel the haptic track · Fictional clubs, synthetic data</p>
+        <p class="sub">Every claim is checked against its source event before it airs · Fictional clubs, synthetic data</p>
       </div>
     </section>
 
     <aside class="rail">
-      <div class="rail-head"><h3>Verification rail</h3><span class="n" id="railCount">0 cues</span></div>
-
-      <div class="chain" id="chain">
-        <div class="step" id="stepClaim">
-          <span class="dot"><i></i></span>
-          <div class="lbl">1 · Claim</div>
-          <div class="val muted" id="claimVal">Awaiting first cue</div>
-        </div>
-        <div class="step" id="stepCheck">
-          <span class="dot"><i></i></span>
-          <div class="lbl">2 · Evidence check</div>
-          <div class="val muted" id="checkVal">actor · team · type · outcome · revision</div>
-          <div class="pips" id="pips"><i></i><i></i><i></i><i></i><i></i></div>
-        </div>
-        <div class="step" id="stepVerdict">
-          <span class="dot"><i></i></span>
-          <div class="lbl">3 · Verdict</div>
-          <div class="val muted" id="verdictVal">—</div>
-        </div>
-        <div class="reason" id="reason"></div>
+      <div class="rail-head">
+        <h3>Match story</h3>
+        <span class="n" id="storyCount">18 moments</span>
       </div>
-
-      <div class="stats">
-        <h4>Match state</h4>
-        <div class="srow">
-          <div class="ring">
-            <svg width="66" height="66" viewBox="0 0 66 66" aria-hidden="true">
-              <circle cx="33" cy="33" r="27" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="6"/>
-              <circle id="wpRing" cx="33" cy="33" r="27" fill="none" stroke="var(--home)" stroke-width="6"
-                stroke-linecap="round" stroke-dasharray="169.6" stroke-dashoffset="84.8"/>
-            </svg>
-            <span class="v" id="wpVal">50%</span>
+      <div class="story" id="story" role="list"></div>
+      <div class="rail-foot">
+        <div class="rail-head inner"><h3>Verification rail</h3><span class="n" id="auditBadge2">idle</span></div>
+        <div class="chain">
+          <div class="step" id="stepClaim">
+            <span class="dot"><i></i></span>
+            <div class="lbl">1 · Claim</div>
+            <div class="val muted" id="claimVal">Select a moment</div>
           </div>
-          <div class="xbars">
-            <div class="xbar h"><div class="t"><span>Home xG</span><b id="xgHome2">0.00</b></div><div class="track"><div class="fill" id="xgFillH" style="width:0%"></div></div></div>
-            <div class="xbar a"><div class="t"><span>Away xG</span><b id="xgAway2">0.00</b></div><div class="track"><div class="fill" id="xgFillA" style="width:0%"></div></div></div>
+          <div class="step" id="stepCheck">
+            <span class="dot"><i></i></span>
+            <div class="lbl">2 · Evidence check</div>
+            <div class="val muted" id="checkVal">actor · team · type · outcome · revision</div>
+            <div class="pips" id="pips"><i></i><i></i><i></i><i></i><i></i></div>
           </div>
+          <div class="step" id="stepVerdict">
+            <span class="dot"><i></i></span>
+            <div class="lbl">3 · Verdict</div>
+            <div class="val muted" id="verdictVal">—</div>
+          </div>
+          <div class="reason" id="reason"></div>
         </div>
-      </div>
-
-      <div class="log">
-        <div class="rail-head" style="border-top:1px solid var(--line)"><h3>Cue log</h3><span class="n">live</span></div>
-        <div class="items" id="feed" aria-live="polite"></div>
         <div class="tools">
           <button class="btn" id="testWrong">Test false outcome</button>
-          <button class="btn" id="testUnsupported">Test unsupported claim</button>
+          <button class="btn" id="testUnsupported">Test unsupported</button>
           <button class="btn" id="export">Export</button>
         </div>
       </div>
@@ -432,8 +462,12 @@
     <div class="trow">
       <button class="play" id="play">
         <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true" id="playIcon"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
-        <span id="playLabel">Play</span>
+        <span id="playLabel">Play story</span>
       </button>
+      <div class="seg">
+        <button id="prev" aria-label="Previous moment">‹ Prev</button>
+        <button id="next" aria-label="Next moment">Next ›</button>
+      </div>
       <div class="grp"><span class="lbl">Mode</span>
         <div class="seg" id="modeSeg">
           <button data-m="accessible" class="on">Accessible</button>
@@ -441,16 +475,8 @@
           <button data-m="analyst">Analyst</button>
         </div>
       </div>
-      <div class="grp"><span class="lbl">Lang</span>
+      <div class="grp"><span class="lbl">Language</span>
         <select id="lang"><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="sw">Kiswahili</option></select>
-      </div>
-      <div class="grp"><span class="lbl">Focus</span>
-        <select id="focus"><option value="">Whole match</option></select>
-      </div>
-      <div class="grp"><span class="lbl">Speed</span>
-        <div class="seg" id="speedSeg">
-          <button data-s="2">2×</button><button data-s="4" class="on">4×</button><button data-s="8">8×</button><button data-s="16">16×</button>
-        </div>
       </div>
       <div class="pipe" aria-hidden="true">
         <span class="st done"><i></i>Ingest</span><span class="ar">›</span>
@@ -459,14 +485,6 @@
         <span class="st done"><i></i>Render</span><span class="ar">›</span>
         <span class="st done"><i></i>Personalize</span>
       </div>
-    </div>
-    <div class="trow">
-      <span class="lbl mono" id="tlabel" style="min-width:34px">0'</span>
-      <div class="trackwrap">
-        <div class="marks" id="marks"></div>
-        <input type="range" id="scrub" min="0" max="5400" value="0" step="1" aria-label="Match time" />
-      </div>
-      <span class="lbl">Haptic</span><div class="hap" id="hapticPad"></div>
     </div>
   </footer>
 </div>
@@ -479,325 +497,301 @@ const D = window.ROAR;
 const P = { home:'#38d9f0', away:'#ffa62b' };
 const MAXT = D.meta.minutes*60;
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const state = { t:0, playing:false, speed:4, mode:'accessible', focus:'', lang:'en',
-                lastFrame:0, cueIdx:0, cur:null, hapticOn:true, seen:0 };
+const LIVE = window.ROAR_LIVE || (window.ROAR_LIVE = { bx:50, by:50, bz:0.9, possession:'home', shots:[], flip:0, highlight:null });
 
-/* ---------- revision-aware state + verifier (mirror of engine/verify.py) ---------- */
+const M = D.moments || [];
+const state = { idx:-1, playing:false, mode:'accessible', lang:'en', current:null, raf:0, hold:0 };
+
+/* ---------------- revision-aware verifier (mirror of engine/verify.py) ---------------- */
 function stateAt(clock){
   const latest=new Map();
-  const evs=[...D.events].sort((a,b)=>(a.arrival-a.arrival)||(a.id<b.id?-1:1));
-  for(const e of evs){ if(e.arrival>clock) continue;
+  for(const e of D.events){ if(e.arrival>clock) continue;
     const cur=latest.get(e.id); if(!cur||e.revision>=cur.revision) latest.set(e.id,e); }
-  const ordered=[...latest.values()].sort((a,b)=>(a.arrival-b.arrival)||(a.id<b.id?-1:1));
+  const ordered=[...latest.values()];
   const score={home:0,away:0};
   for(const e of ordered) if(e.type==='goal'&&e.outcome==='scored') score[e.team]++;
-  return { events: ordered, score };
+  return {events:ordered, score};
 }
 function verify(claim, st){
   if(!claim||claim.kind!=='event_fact') return {accepted:false,reason:'Unsupported claim kind. Only typed event facts can air.'};
   const ev=st.events.find(e=>e.id===claim.event_id);
   if(!ev) return {accepted:false,reason:'Evidence is not available at this viewer time.'};
-  if((claim.revision||1)!==ev.revision) return {accepted:false,reason:'Evidence revision is stale (the event was corrected).'};
+  if((claim.revision||1)!==ev.revision) return {accepted:false,reason:'Evidence revision is stale — the event was corrected.'};
   for(const k of ['player','team','type','outcome']) if(claim[k]!==ev[k]) return {accepted:false,reason:`Claim ${k} does not match the source event.`};
   return {accepted:true,reason:'Actor, team, type, outcome and revision match the evidence.'};
 }
+const eventById = id => D.events.find(e=>e.id===id);
 
-/* ---------- live feed into the 3D pitch renderer ---------- */
-const LIVE = window.ROAR_LIVE || (window.ROAR_LIVE = { bx:50, by:50, possession:'home', shots:[] });
-const proj = (x,y,z) => (window.ROAR_PITCH && window.ROAR_PITCH.project) ? window.ROAR_PITCH.project(x,y,z) : null;
-const shotSeen = new Set();
-function syncShots(clock){
-  const st = stateAt(clock);
-  for (const e of st.events){
-    if (e.type !== 'shot' || shotSeen.has(e.id)) continue;
-    shotSeen.add(e.id);
-    const h = e.team === 'home';
-    LIVE.shots.push({ x: h ? e.x : 100 - e.x, y: h ? e.y : 100 - e.y, xg: e.xg || 0.02,
-                      team: e.team, outcome: e.outcome });
-    if (LIVE.shots.length > 90) LIVE.shots.shift();
-  }
+/* ---------------- the story ---------------- */
+const storyEl = document.getElementById('story');
+document.getElementById('storyCount').textContent = M.length + ' moments';
+
+function ocClass(m){
+  if(m.overturned) return 'var';
+  if(m.outcome === 'GOAL') return 'goal';
+  if(m.outcome.includes('SAVED')) return 'save';
+  return '';
+}
+function buildStory(){
+  const frag=document.createDocumentFragment();
+  M.forEach((m,i)=>{
+    const b=document.createElement('button');
+    b.className='sitem'; b.type='button'; b.setAttribute('role','listitem');
+    b.dataset.i=i;
+    b.innerHTML = `<span class="num">${String(i+1).padStart(2,'0')}</span>
+      <span><span class="tt">${m.title}</span><span class="sub">${m.minute} · ${m.team==='home'?D.meta.home:D.meta.away}</span></span>
+      <span class="oc ${ocClass(m)}">${m.outcome}</span>`;
+    b.onclick=()=>{ state.playing=false; showMoment(i); };
+    frag.appendChild(b);
+  });
+  storyEl.appendChild(frag);
 }
 
-/* ---------- ambience ---------- */
-(function particles(){ const c=document.getElementById('particles'), g=c.getContext('2d'); let w,h,p=[];
-  const rs=()=>{ w=c.width=c.offsetWidth; h=c.height=c.offsetHeight;
-    p=Array.from({length:Math.min(60,Math.round(w/26))},()=>({x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.6+.4,s:Math.random()*.22+.05,a:Math.random()*.4+.12})); };
-  rs(); addEventListener('resize',rs);
-  (function loop(){ if(!REDUCED){ g.clearRect(0,0,w,h);
-    for(const q of p){ q.y-=q.s; if(q.y<-4){q.y=h+4;q.x=Math.random()*w;}
-      g.beginPath(); g.arc(q.x,q.y,q.r,0,7); g.fillStyle=`rgba(170,210,255,${q.a*0.45})`; g.fill(); } }
-    requestAnimationFrame(loop); })();
-})();
-
-/* ---------- momentum ribbon ---------- */
-function momentumAt(t){ const M=D.momentum; if(!M.length) return 0;
-  for(let i=0;i<M.length;i++) if(M[i+1]&&t<M[i+1].t) return M[i].v; return M[M.length-1].v; }
-function drawMom(){ const c=document.getElementById('mom'); const r=c.getBoundingClientRect();
-  const dpr=Math.min(devicePixelRatio||1,2);
-  if(c.width!==Math.floor(r.width*dpr)){ c.width=Math.floor(r.width*dpr); c.height=Math.floor(r.height*dpr); }
-  const g=c.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0);
-  const W=r.width,H=r.height,mid=H*0.62; g.clearRect(0,0,W,H);
-  const M=D.momentum; if(!M.length) return;
-  const xa=t=>(t/MAXT)*W;
-  g.beginPath(); g.moveTo(0,mid);
-  for(const m of M){ const x=xa(m.t); if(x>xa(state.t)) break; g.lineTo(x, mid-(m.v/6)*(mid-8)); }
-  g.lineTo(xa(state.t),mid); g.closePath();
-  const grd=g.createLinearGradient(0,0,0,H);
-  grd.addColorStop(0,'rgba(212,255,63,.22)'); grd.addColorStop(1,'rgba(212,255,63,0)');
-  g.fillStyle=grd; g.fill();
-  g.strokeStyle='rgba(212,255,63,.72)'; g.lineWidth=1.4; g.stroke();
-  g.beginPath(); g.moveTo(0,mid); g.lineTo(W,mid); g.strokeStyle='rgba(255,255,255,.09)'; g.stroke();
+/* ---------------- ball animation ---------------- */
+function stopAnim(){ if(state.raf) cancelAnimationFrame(state.raf); state.raf=0; }
+function travel(from, to, dur, arc){
+  return new Promise(res=>{
+    if(REDUCED || dur<=0){ LIVE.bx=to.x; LIVE.by=to.y; LIVE.bz=0.9; return res(); }
+    const t0=performance.now();
+    (function step(now){
+      const k=Math.min(1,(now-t0)/dur);
+      const e=1-Math.pow(1-k,3);
+      LIVE.bx = from.x+(to.x-from.x)*e;
+      LIVE.by = from.y+(to.y-from.y)*e;
+      LIVE.bz = 0.9 + Math.sin(Math.PI*k)*(arc||0);
+      if(k<1) state.raf=requestAnimationFrame(step); else res();
+    })(t0);
+  });
 }
 
-/* ---------- hud ---------- */
-function fmt(t){ return `${Math.floor(t/60)}'`; }
-function renderHUD(){
-  const st=stateAt(state.t), ev=st.events.length?st.events[st.events.length-1]:null;
-  document.getElementById('clock').textContent=fmt(state.t);
-  document.getElementById('tlabel').textContent=fmt(state.t);
-  document.getElementById('score').textContent=`${st.score.home}–${st.score.away}`;
-  if(ev){
-    const xgh=ev.xg_home||0, xga=ev.xg_away||0, wp=ev.win_prob_home||.5;
-    document.getElementById('xgHome2').textContent=xgh.toFixed(2);
-    document.getElementById('xgAway2').textContent=xga.toFixed(2);
-    const tot=Math.max(xgh+xga,.01);
-    document.getElementById('xgFillH').style.width=(xgh/tot*100)+'%';
-    document.getElementById('xgFillA').style.width=(xga/tot*100)+'%';
-    document.getElementById('wpVal').textContent=Math.round(wp*100)+'%';
-    document.getElementById('wpRing').setAttribute('stroke-dashoffset', String(169.6*(1-wp)));
-  }
-  if (ev) { LIVE.bx = ev.x; LIVE.by = ev.y; LIVE.possession = ev.team; }
-  syncShots(state.t);
-  drawMom();
+/* ---------------- show one moment ---------------- */
+function chainReset(){
+  document.getElementById('stepClaim').className='step';
+  document.getElementById('stepCheck').className='step';
+  document.getElementById('stepVerdict').className='step';
+  document.getElementById('claimVal').className='val muted';
+  document.getElementById('claimVal').textContent='Select a moment';
+  document.getElementById('checkVal').className='val muted';
+  document.getElementById('checkVal').textContent='actor · team · type · outcome · revision';
+  document.getElementById('verdictVal').className='val muted';
+  document.getElementById('verdictVal').textContent='—';
+  document.getElementById('reason').textContent='';
+  document.getElementById('reason').className='reason';
+  [...document.getElementById('pips').children].forEach(p=>p.className='');
+  document.getElementById('auditBadge2').textContent='idle';
 }
 
-/* ---------- verification chain ---------- */
-function chainShow(claim, verdict, silent){
-  const c=document.getElementById('chain');
-  const s1=document.getElementById('stepClaim'), s2=document.getElementById('stepCheck'), s3=document.getElementById('stepVerdict');
-  s1.className='step'; s2.className='step'; s3.className='step';
-  document.getElementById('claimVal').className='val';
-  document.getElementById('claimVal').textContent =
-    claim && claim.event_id ? `${claim.player||'—'} · ${claim.type||'—'} / ${claim.outcome||'—'}` : 'No active claim';
-  document.getElementById('checkVal').textContent = `event #${claim?.event_id ?? '—'} · revision r${claim?.revision ?? 1}`;
-  const pips=[...document.getElementById('pips').children];
-  pips.forEach(p=>p.className='');
-  const reason=document.getElementById('reason');
+async function showMoment(i, silent){
+  const m = M[i]; if(!m) return;
+  state.idx = i; state.current = m;
+  [...storyEl.children].forEach((c,k)=>c.classList.toggle('on',k===i));
+  storyEl.children[i] && storyEl.children[i].scrollIntoView({block:'nearest',behavior:REDUCED?'auto':'smooth'});
 
-  if(silent){ // instant state
-    s1.classList.add('ok'); s2.classList.add('ok');
-    pips.forEach(p=>p.classList.add(verdict.accepted?'on':'err'));
-    s3.classList.add(verdict.accepted?'ok':'bad');
-    document.getElementById('verdictVal').textContent=verdict.accepted?'Accepted — cleared to air':'Blocked';
-    document.getElementById('verdictVal').className='val';
-    reason.className='reason '+(verdict.accepted?'ok':'bad'); reason.textContent=verdict.reason;
-    return;
-  }
-  s1.classList.add('active');
-  const run=pips.length, step=110;
-  pips.forEach((p,i)=>setTimeout(()=>p.classList.add(verdict.accepted?'on':'err'), 150+i*step));
-  setTimeout(()=>{
-    s1.className='step ok'; s2.className='step active';
-    setTimeout(()=>{
-      s2.className='step '+(verdict.accepted?'ok':'bad');
-      s3.className='step '+(verdict.accepted?'ok':'bad');
-      document.getElementById('verdictVal').textContent=verdict.accepted?'Accepted — cleared to air':'Blocked';
-      reason.className='reason '+(verdict.accepted?'ok':'bad'); reason.textContent=verdict.reason;
-      document.getElementById('auditPill').classList.toggle('bad',!verdict.accepted);
-      document.getElementById('auditBadge').textContent=verdict.accepted?'Verified':'Blocked';
-    }, run*step);
-  }, 260);
-}
+  // the pitch flips so the attacking team always plays left -> right
+  LIVE.flip = m.mirror ? 1 : 0;
+  const sx = m.x, sy = m.y;
+  const ex = (m.end_x!=null? m.end_x : m.x), ey = (m.end_y!=null? m.end_y : m.y);
 
-/* ---------- modes ---------- */
-function register(){ return state.mode==='analyst'?'analyst':(state.mode==='accessible'?'cognitive':'casual'); }
-function inFocus(c){ if(!state.focus) return true;
-  if(state.focus.startsWith('p:')) return c.player===state.focus.slice(2);
-  if(state.focus.startsWith('t:')) return c.team===state.focus.slice(2); return true; }
-function hapticPattern(p){ return ({surge:[40,30,40,30,120],pulse:[30,40,30],tap:[18],rumble:[60,40,60],
-  wave:[20,30,20,30],flat:[10],tighten:[80,60,80],double:[50,60,50]})[p]||[30]; }
-function hapticBars(intensity,on){ const pad=document.getElementById('hapticPad');
-  if(!pad.children.length) for(let i=0;i<26;i++){const b=document.createElement('b');pad.appendChild(b);}
-  [...pad.children].forEach((b,i)=>{ const c=Math.exp(-Math.pow((i-13)/6.5,2));
-    b.style.height=(on?6+intensity*c*18*(0.7+Math.random()*0.3):6)+'px'; b.style.background=on?'var(--volt)':'#26334e'; });
-  pad.classList.toggle('on',on); setTimeout(()=>[...pad.children].forEach(b=>b.style.height='6px'),240); }
+  stopAnim();
+  LIVE.bx=sx; LIVE.by=sy; LIVE.bz=0.9;
+  LIVE.highlight = { x:m.x, y:m.y, ex:ex, ey:ey };
 
-function shock(accent){ if(REDUCED) return;
-  const p = proj(LIVE.bx, LIVE.by, 0.6); if(!p) return;
-  const s=document.createElement('div'); s.className='shock';
-  s.style.left=p[0]+'px'; s.style.top=p[1]+'px'; s.style.borderColor=accent;
-  document.querySelector('.broadcast').appendChild(s); setTimeout(()=>s.remove(),1050); }
-function sweep(){ if(REDUCED) return; const s=document.getElementById('sweep'); s.classList.remove('go'); void s.offsetWidth; s.classList.add('go'); }
-function kinetic(txt){ if(REDUCED) return; const g=document.getElementById('goalword');
-  document.getElementById('goaltext').textContent=txt; g.classList.remove('on'); void g.offsetWidth; g.classList.add('on'); }
+  // lower-third + outcome
+  const lo=document.getElementById('lower');
+  lo.className='lower '+(m.outcome==='GOAL'?'':(m.outcome.includes('SAVED')?'press':(m.outcome==='BLOCKED'||m.outcome==='OFF TARGET'?'danger':'')));
+  document.getElementById('cueKind').textContent = m.outcome;
+  document.getElementById('cueMin').textContent = `${m.minute} · moment ${i+1} of ${M.length}`;
+  document.getElementById('caption').innerHTML = momentCaption(m);
+  document.getElementById('evidence').innerHTML =
+    `<span>event <b>#${m.event_id}</b></span>` +
+    (m.xg!=null?`<span>xG <b>${m.xg.toFixed(2)}</b></span>`:'') +
+    `<span>xT <b>${m.xt.toFixed(3)}</b></span>`;
 
-function emitCue(cue, st, silent){
-  if(!inFocus(cue)) return;
-  state.cur=cue; state.seen++;
-  document.getElementById('railCount').textContent=`${state.seen} cues`;
-  const reg=register();
-  const caps=cue.caption[state.lang]||cue.caption.en;
-  const verdict=verify(cue.claim, st);
-  const stale=!verdict.accepted && verdict.reason.includes('stale');
+  const oc=document.getElementById('outcome');
+  oc.className='outcome on '+(m.overturned?'var':(m.outcome==='GOAL'?'':(m.outcome.includes('SAVED')?'save':'miss')));
+  document.getElementById('outcomeText').textContent = m.overturned ? 'GOAL OVERTURNED' : m.outcome;
+  document.getElementById('outcomeScore').textContent =
+    (m.score_before===m.score_after) ? `Score ${m.score_after}` : `Score ${m.score_before} → ${m.score_after}`;
 
-  const lower=document.getElementById('lower');
-  lower.className='lower '+(cue.kind==='chance'||cue.kind==='danger'?'danger':(cue.kind==='press'||cue.kind==='tension'?'press':''));
-  document.getElementById('cueKind').textContent=cue.kind;
-  document.getElementById('cueMin').textContent=`${cue.minute} · salience ${cue.salience}`;
-  document.getElementById('caption').innerHTML=(stale?'<span class="sup">SUPERSEDED — SOURCE CORRECTED</span>':'')+caps[reg];
+  runChain(m, silent);
 
-  const m=cue.metrics, chips=[];
-  if(cue.player) chips.push(`player <b>${cue.player}</b>`);
-  if(m.xg!=null) chips.push(`xG <b>${(+m.xg).toFixed(2)}</b>`);
-  if(m.xt!=null) chips.push(`xT <b>${(+m.xt).toFixed(3)}</b>`);
-  if(m.xt_gain!=null) chips.push(`ΔxT <b>${(+m.xt_gain>=0?'+':'')}${(+m.xt_gain).toFixed(3)}</b>`);
-  chips.push(`evidence <b>#${cue.claim.event_id}·r${cue.claim.revision||1}</b>`);
-  document.getElementById('evidence').innerHTML=chips.map(c=>`<span>${c}</span>`).join('');
-
-  chainShow(cue.claim, verdict, !!silent);
+  // animate the ball travelling to the outcome
+  await travel({x:sx,y:sy}, {x:ex,y:ey}, m.kind==='shot'?900:520, m.kind==='shot'?2.6:0.2);
 
   if(!silent){
-    if(cue.kind==='goal'){ kinetic('GOAL'); sweep(); shock('var(--volt)'); window.ROAR_SCENE&&window.ROAR_SCENE.flash(1);
-      syncShots(state.t); }
-    else if(cue.kind==='correction'){ kinetic('REVISED'); sweep(); shock('var(--volt)'); window.ROAR_SCENE&&window.ROAR_SCENE.flash(.6); }
-    else if(cue.kind==='chance'||cue.kind==='danger'){ shock('var(--danger)'); }
-    else if(cue.kind==='press'||cue.kind==='tension'){ shock('var(--home)'); }
+    if(m.outcome==='GOAL'){ sweep(); window.ROAR_SCENE&&window.ROAR_SCENE.flash(1); }
+    else if(m.overturned){ sweep(); window.ROAR_SCENE&&window.ROAR_SCENE.flash(.6); }
   }
-
-  const on=state.hapticOn && state.mode==='accessible' && cue.kind!=='calm';
-  hapticBars(cue.haptic.intensity,on);
-  if(on && navigator.vibrate) navigator.vibrate(hapticPattern(cue.haptic.pattern));
-
-  const feed=document.getElementById('feed');
-  [...feed.children].forEach(c=>c.classList.remove('on'));
-  const it=document.createElement('div'); it.className='it on'+(stale?' sup':'');
-  it.innerHTML=`<span class="m">${cue.minute}</span><span class="x">${caps.casual}</span><span class="s">${verdict.accepted?'OK':'BLOCKED'}</span>`;
-  feed.prepend(it); while(feed.children.length>50) feed.lastChild.remove();
-
-  const vl=document.getElementById('varline');
-  if(cue.kind==='correction'){ vl.classList.add('on'); vl.textContent='REVISION 2 — '+caps.casual; }
-  else vl.classList.remove('on');
+  if(m.kind==='shot'){ LIVE.shots.push({x:m.x,y:m.y,xg:m.xg||0.02,team:m.team,outcome:m.overturned?'goal':m.kind==='shot'?(eventById(m.event_id)||{}).outcome:'off_target'}); }
+  if(LIVE.shots.length>60) LIVE.shots.shift();
 }
 
-/* ---------- loop ---------- */
-function frame(ts){
-  if(!state.lastFrame) state.lastFrame=ts;
-  const dt=(ts-state.lastFrame)/1000; state.lastFrame=ts;
-  if(state.playing){
-    state.t+=dt*60*state.speed;
-    if(state.t>=MAXT){ state.t=MAXT; setPlaying(false); }
-    document.getElementById('scrub').value=Math.floor(state.t);
-    const st=stateAt(state.t); renderHUD();
-    while(state.cueIdx<D.cues.length && D.cues[state.cueIdx].t<=state.t){ emitCue(D.cues[state.cueIdx], st); state.cueIdx++; }
+/* personalization: register x language captions from the engine, when available */
+function register(){ return state.mode==='analyst'?'analyst':(state.mode==='accessible'?'cognitive':'casual'); }
+function momentCaption(m){
+  const cue = D.cues.find(c=>Math.abs(c.t-m.t)<2.0 && c.team===m.team);
+  if(cue){
+    const caps = cue.caption[state.lang] || cue.caption.en;
+    return `<b style="font-weight:600">${caps[register()]}</b>`;
   }
-  requestAnimationFrame(frame);
+  return `<b style="font-weight:600">${m.title}.</b> <span style="color:var(--dim)">${m.why}</span>`;
 }
-requestAnimationFrame(frame);
+document.getElementById('modeSeg').onclick=(e)=>{ const b=e.target.closest('button'); if(!b) return;
+  [...e.currentTarget.children].forEach(x=>x.classList.remove('on')); b.classList.add('on');
+  state.mode=b.dataset.m; if(state.current) document.getElementById('caption').innerHTML=momentCaption(state.current); };
 
-/* ---------- demo director (?demo=1) ---------- */
-const DEMO=[
-  {at:0,   do:()=>startCard('SOUND OFF. STILL FELT.','ROAR turns synthetic match events into a sensory, verified broadcast.')},
-  {at:4,   do:()=>{hideCard(); seek(1530); play();}},
-  {at:9,   do:()=>seek(1810)},
-  {at:12,  do:()=>banner('GOAL — every cue carries its evidence')},
-  {at:20,  do:()=>{pause(); setMode('analyst'); banner('ANALYST MODE — same moment, deeper register');}},
-  {at:27,  do:()=>{setMode('accessible'); setLang('es'); banner('PERSONALIZED — Español, accessible register');}},
-  {at:34,  do:()=>{setLang('en'); play();}},
-  {at:38,  do:()=>{seek(4130); banner('VAR OVERTURNS THE GOAL — revision 2 arrives');}},
-  {at:45,  do:()=>seek(4260)},
-  {at:50,  do:()=>{pause(); document.getElementById('testWrong').click(); banner('THE VERIFIER BLOCKS A FALSE CLAIM');}},
-  {at:58,  do:()=>document.getElementById('testUnsupported').click()},
-  {at:66,  do:()=>{seek(5380); play();}},
-  {at:72,  do:()=>{pause(); startCard('ROAR','Ingest → Interpret → Explain → Render → Personalize. Every claim verified before air.');}},
-  {at:82,  do:()=>hideCard()},
-];
-let demoT0=0, demoIdx=0;
-function startCard(t,s){ let el=document.getElementById('democard');
-  if(!el){ el=document.createElement('div'); el.id='democard'; el.className='democard';
-    el.innerHTML='<div class="dt"></div><div class="ds"></div>'; document.body.appendChild(el); }
-  el.querySelector('.dt').textContent=t; el.querySelector('.ds').textContent=s; el.classList.add('on'); }
-function hideCard(){ const el=document.getElementById('democard'); if(el) el.classList.remove('on'); }
-function banner(t){ const el=document.getElementById('demobanner');
-  el.textContent=t; el.classList.add('on'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('on'),3600); }
-function seek(t){ state.t=Math.min(MAXT,t);
-  state.cueIdx=D.cues.findIndex(c=>c.t>state.t); if(state.cueIdx<0) state.cueIdx=D.cues.length;
-  document.getElementById('scrub').value=Math.floor(state.t);
-  LIVE.shots.length=0; shotSeen.clear();
-  const st=stateAt(state.t);
-  for(let i=0;i<state.cueIdx;i++) if(inFocus(D.cues[i])) emitCue(D.cues[i], st, true);
-  renderHUD(); }
-function play(){ setPlaying(true); } function pause(){ setPlaying(false); }
-function setMode(m){ const b=document.querySelector(`#modeSeg button[data-m="${m}"]`); if(b) b.click(); }
-function setLang(l){ const el=document.getElementById('lang'); el.value=l; el.dispatchEvent(new Event('change')); }
-function runDemo(){ document.getElementById('start').style.display='none';
-  document.getElementById('play').style.visibility='hidden';
-  const el=document.createElement('div'); el.id='demobanner'; el.className='demobanner'; document.body.appendChild(el);
-  demoT0=performance.now();
-  (function tick(){ const s=(performance.now()-demoT0)/1000;
-    while(demoIdx<DEMO.length && DEMO[demoIdx].at<=s){ try{DEMO[demoIdx].do();}catch(e){console.warn(e);} demoIdx++; }
-    if(demoIdx<DEMO.length) requestAnimationFrame(tick); })();
+/* ---------------- verification chain --------------- */
+function runChain(m, silent){
+  const src = eventById(m.verify_event_id || m.event_id);
+  const claim = { kind:'event_fact', event_id:m.verify_event_id||m.event_id, revision:1,
+                  player:src.player, team:src.team, type:src.type, outcome:src.outcome };
+  const st = stateAt(MAXT);
+  const v = verify(claim, st);
+  const s1=document.getElementById('stepClaim'), s2=document.getElementById('stepCheck'), s3=document.getElementById('stepVerdict');
+  const pips=[...document.getElementById('pips').children];
+
+  document.getElementById('claimVal').className='val';
+  document.getElementById('claimVal').textContent = `${claim.player} · ${claim.type} / ${claim.outcome}`;
+  document.getElementById('checkVal').className='val';
+  document.getElementById('checkVal').textContent = `event #${claim.event_id} · revision r${claim.revision}`;
+  document.getElementById('reason').className='reason';
+  document.getElementById('reason').textContent='';
+  pips.forEach(p=>p.className='');
+  s3.className='step'; document.getElementById('verdictVal').className='val muted';
+  document.getElementById('verdictVal').textContent='—';
+
+  if(silent || REDUCED){
+    s1.className='step ok'; s2.className='step '+(v.accepted?'ok':'bad'); s3.className='step '+(v.accepted?'ok':'bad');
+    pips.forEach(p=>p.classList.add(v.accepted?'on':'err'));
+    document.getElementById('verdictVal').textContent = v.accepted?'Accepted — cleared to air':'Blocked';
+    document.getElementById('reason').className='reason '+(v.accepted?'ok':'bad');
+    document.getElementById('reason').textContent=v.reason;
+    document.getElementById('auditBadge2').textContent=v.accepted?'verified':'blocked';
+    return;
+  }
+  s1.className='step active';
+  setTimeout(()=>{ s1.className='step ok'; s2.className='step active';
+    pips.forEach((p,k)=>setTimeout(()=>p.classList.add(v.accepted?'on':'err'), k*110));
+    setTimeout(()=>{
+      s2.className='step '+(v.accepted?'ok':'bad');
+      s3.className='step '+(v.accepted?'ok':'bad');
+      document.getElementById('verdictVal').textContent = v.accepted?'Accepted — cleared to air':'Blocked';
+      document.getElementById('reason').className='reason '+(v.accepted?'ok':'bad');
+      document.getElementById('reason').textContent=v.reason;
+      document.getElementById('auditBadge2').textContent=v.accepted?'verified':'blocked';
+    }, pips.length*110);
+  }, 240);
 }
 
-/* ---------- controls ---------- */
+function sweep(){ if(REDUCED) return; const s=document.getElementById('sweep'); s.classList.remove('go'); void s.offsetWidth; s.classList.add('go'); }
+
+/* ---------------- playback: step through the story ---------------- */
+let holdTimer=0;
+function playStory(){
+  state.playing=true; label();
+  const next=()=>{
+    if(!state.playing) return;
+    const i = state.idx+1 >= M.length ? 0 : state.idx+1;
+    showMoment(i).then(()=>{ if(state.playing) holdTimer=setTimeout(next, 2600); });
+  };
+  if(state.idx < 0) showMoment(0).then(()=>{ if(state.playing) holdTimer=setTimeout(next,2600); });
+  else next();
+}
+function stopStory(){ state.playing=false; clearTimeout(holdTimer); label(); }
+function label(){
+  document.getElementById('playIcon').innerHTML = state.playing ? PAUSE_SVG : PLAY_SVG;
+  document.getElementById('playLabel').textContent = state.playing ? 'Pause' : 'Play story';
+}
 const PLAY_SVG='<path d="M8 5v14l11-7z" fill="currentColor"/>';
 const PAUSE_SVG='<path d="M6 5h4v14H6zM14 5h4v14h-4z" fill="currentColor"/>';
-function setPlaying(p){ state.playing=p;
-  document.getElementById('playIcon').innerHTML=p?PAUSE_SVG:PLAY_SVG;
-  document.getElementById('playLabel').textContent=p?'Pause':'Play'; }
-document.getElementById('play').onclick=()=>setPlaying(!state.playing);
-document.getElementById('startBtn').onclick=()=>{ document.getElementById('start').style.display='none'; setPlaying(true); };
-document.getElementById('scrub').oninput=(e)=>{ state.t=+e.target.value;
-  state.cueIdx=D.cues.findIndex(c=>c.t>state.t); if(state.cueIdx<0) state.cueIdx=D.cues.length;
-  document.getElementById('feed').innerHTML=''; LIVE.shots.length=0; shotSeen.clear();
-  const st=stateAt(state.t); let last=null;
-  for(let i=0;i<state.cueIdx;i++) if(inFocus(D.cues[i])) last=D.cues[i];
-  if(last) emitCue(last, st, true); renderHUD(); };
-document.getElementById('modeSeg').onclick=(e)=>{ const b=e.target.closest('button'); if(!b)return;
-  [...e.currentTarget.children].forEach(x=>x.classList.remove('on')); b.classList.add('on');
-  state.mode=b.dataset.m; state.hapticOn=state.mode==='accessible'; };
-document.getElementById('speedSeg').onclick=(e)=>{ const b=e.target.closest('button'); if(!b)return;
-  [...e.currentTarget.children].forEach(x=>x.classList.remove('on')); b.classList.add('on'); state.speed=+b.dataset.s; };
-document.getElementById('lang').onchange=(e)=>{ state.lang=e.target.value;
-  if(state.cur){ const caps=state.cur.caption[state.lang]||state.cur.caption.en;
-    document.getElementById('caption').innerHTML=caps[register()]; } };
-const focusSel=document.getElementById('focus');
-const uniq=[...new Set(D.events.filter(e=>e.player&&e.type!=='goal').map(e=>e.player))].sort();
-focusSel.innerHTML=`<option value="">Whole match</option>`+
-  [['home',D.meta.home],['away',D.meta.away]].map(([k,n])=>`<option value="t:${k}">Club · ${n}</option>`).join('')+
-  uniq.map(p=>`<option value="p:${p}">Player · ${p}</option>`).join('');
-focusSel.onchange=(e)=>{ state.focus=e.target.value; document.getElementById('feed').innerHTML='';
-  state.cueIdx=D.cues.findIndex(c=>c.t>state.t); if(state.cueIdx<0) state.cueIdx=D.cues.length; };
-document.getElementById('testWrong').onclick=()=>{ if(!state.cur)return;
-  const st=stateAt(state.t), bad={...state.cur.claim, outcome:state.cur.claim.outcome==='goal'?'saved':'goal'};
-  const v=verify(bad,st); chainShow(bad,v,false);
-  document.getElementById('testWrong').textContent='Tested ✓';
-  setTimeout(()=>document.getElementById('testWrong').textContent='Test false outcome',2600);
-  document.getElementById('auditPill').classList.toggle('bad',!v.accepted);
-  document.getElementById('auditBadge').textContent=v.accepted?'Verified':'Blocked'; };
-document.getElementById('testUnsupported').onclick=()=>{ if(!state.cur)return;
-  const st=stateAt(state.t), bad={kind:'certain_goal', event_id:state.cur.claim.event_id};
-  const v=verify(bad,st); chainShow(bad,v,false);
-  document.getElementById('testUnsupported').textContent='Tested ✓';
-  setTimeout(()=>document.getElementById('testUnsupported').textContent='Test unsupported claim',2600); };
-document.getElementById('export').onclick=()=>{ const st=stateAt(state.t);
-  const blob=new Blob([JSON.stringify({source:'ROAR synthetic replay',clock:state.t,score:st.score,audit:D.audit,correction:D.correction},null,2)],{type:'application/json'});
-  const url=URL.createObjectURL(blob),a=document.createElement('a'); a.href=url; a.download=`roar-recap-${Math.floor(state.t)}s.json`; a.click();
-  setTimeout(()=>URL.revokeObjectURL(url),1000); };
 
-/* timeline marks */
-(function(){ const wrap=document.getElementById('marks'); const frag=document.createDocumentFragment();
-  for(const c of D.cues){ if(c.kind!=='goal'&&c.kind!=='correction') continue;
-    const i=document.createElement('i'); i.className=c.kind==='goal'?'goal':'var';
-    i.style.left=(c.t/MAXT*100)+'%'; frag.appendChild(i); }
-  wrap.appendChild(frag); })();
+/* ---------------- chrome ---------------- */
+function renderScore(clock){
+  const st=stateAt(clock);
+  document.getElementById('score').textContent=`${st.score.home}–${st.score.away}`;
+}
+function renderStats(clock){
+  const st=stateAt(clock); const ev=st.events[st.events.length-1];
+  if(!ev) return;
+  const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
+  const xgh=ev.xg_home||0, xga=ev.xg_away||0, wp=ev.win_prob_home||.5;
+  set('xgHome2', xgh.toFixed(2));
+  set('xgAway2', xga.toFixed(2));
+  set('wpVal', Math.round(wp*100)+'%');
+  const ring=document.getElementById('wpRing');
+  if(ring) ring.setAttribute('stroke-dashoffset', String(169.6*(1-wp)));
+  const fh=document.getElementById('xgFillH'), fa=document.getElementById('xgFillA');
+  const tot=Math.max(xgh+xga,.01);
+  if(fh) fh.style.width=(xgh/tot*100)+'%';
+  if(fa) fa.style.width=(xga/tot*100)+'%';
+  const cl=document.getElementById('clock');
+  if(cl) cl.textContent = clock!=null ? `${Math.floor(clock/60)}'` : '—';
+}
 
+/* ---------------- controls ---------------- */
+document.getElementById('play').onclick=()=> state.playing ? stopStory() : playStory();
+document.getElementById('startBtn').onclick=()=>{ document.getElementById('start').style.display='none'; playStory(); };
+document.getElementById('prev').onclick=()=>{ stopStory(); showMoment(Math.max(0,state.idx-1)); };
+document.getElementById('next').onclick=()=>{ stopStory(); showMoment(Math.min(M.length-1,state.idx+1)); };
+document.getElementById('lang').onchange=(e)=>{ state.lang=e.target.value; if(state.current) document.getElementById('caption').innerHTML=momentCaption(state.current); };
+document.getElementById('testWrong').onclick=()=>{
+  const m=state.current; if(!m) return;
+  const src=eventById(m.verify_event_id||m.event_id);
+  const bad={kind:'event_fact',event_id:src.id,revision:1,player:src.player,team:src.team,type:src.type,outcome:src.outcome==='goal'?'saved':'goal'};
+  const v=verify(bad,stateAt(MAXT));
+  document.getElementById('reason').className='reason '+(v.accepted?'ok':'bad');
+  document.getElementById('reason').textContent = `Proposed outcome “${bad.outcome}” → ${v.accepted?'ACCEPTED':'BLOCKED'}. ${v.reason}`;
+  document.getElementById('auditBadge2').textContent = v.accepted?'verified':'blocked';
+  [...document.getElementById('pips').children].forEach(p=>p.className=v.accepted?'on':'err');
+  document.getElementById('stepVerdict').className='step '+(v.accepted?'ok':'bad');
+  document.getElementById('verdictVal').className='val';
+  document.getElementById('verdictVal').textContent=v.accepted?'Accepted':'Blocked';
+};
+document.getElementById('testUnsupported').onclick=()=>{
+  const m=state.current; if(!m) return;
+  const v=verify({kind:'certain_goal',event_id:m.verify_event_id||m.event_id}, stateAt(MAXT));
+  document.getElementById('reason').className='reason bad';
+  document.getElementById('reason').textContent=`Claim type “certain_goal” → BLOCKED. ${v.reason}`;
+  document.getElementById('auditBadge2').textContent='blocked';
+  [...document.getElementById('pips').children].forEach(p=>p.className='err');
+  document.getElementById('stepVerdict').className='step bad';
+  document.getElementById('verdictVal').className='val';
+  document.getElementById('verdictVal').textContent='Blocked';
+};
+document.getElementById('export').onclick=()=>{
+  const blob=new Blob([JSON.stringify({source:'ROAR synthetic replay',story:M,audit:D.audit,correction:D.correction},null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a'); a.href=url; a.download='roar-story.json'; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+};
+document.addEventListener('keydown',(e)=>{
+  if(e.key==='ArrowRight'){ stopStory(); showMoment(Math.min(M.length-1,state.idx+1)); }
+  if(e.key==='ArrowLeft'){ stopStory(); showMoment(Math.max(0,state.idx-1)); }
+  if(e.key===' '){ e.preventDefault(); state.playing?stopStory():playStory(); }
+});
+
+/* ---------------- boot ---------------- */
 document.getElementById('tHome').textContent=D.meta.home.replace(/ (FC|United)$/,'');
 document.getElementById('tAway').textContent=D.meta.away.replace(/ (FC|United)$/,'');
-renderHUD();
-const q=new URLSearchParams(location.search);
-if(q.get('t')){ seek(+q.get('t')); }
-if(location.search.includes('demo')){ runDemo(); }
-else if(location.search.includes('auto')){ document.getElementById('start').style.display='none'; setPlaying(true); }
+buildStory(); chainReset(); renderStats(MAXT); renderScore(MAXT);
+document.getElementById('clock').textContent='—';
+
+const params=new URLSearchParams(location.search);
+if(params.get('mode')){
+  const b=document.querySelector(`#modeSeg button[data-m="${params.get('mode')}"]`);
+  if(b) b.click();
+}
+if(params.get('lang')){
+  const el=document.getElementById('lang'); el.value=params.get('lang');
+  state.lang=el.value;
+}
+if(params.get('m')!==null){
+  document.getElementById('start').style.display='none';
+  showMoment(Math.max(0,Math.min(M.length-1, parseInt(params.get('m'),10)||0)));
+}
+if(params.has('auto')){
+  document.getElementById('start').style.display='none';
+  playStory();
+}
 </script>
 </body>
 </html>
