@@ -41,7 +41,7 @@
   }
 
   // world metres <- pitch units 0..100
-  const toWorld = (x, y, z = 0) => [x/100 * L, y/100 * Wd, z];
+  const toWorld = (x, y, z = 0) => [(LIVE.flip ? (100 - x) : x)/100 * L, y/100 * Wd, z];
 
   function project(x, y, z) { return rawProject(toWorld(x, y, z)); }
 
@@ -75,7 +75,7 @@
   }
 
   /* ---------------- live state ---------------- */
-  const LIVE = { bx: 50, by: 50, possession: 'home', shots: [] };
+  const LIVE = { bx: 50, by: 50, bz: 0.9, possession: 'home', shots: [], flip: 0, highlight: null };
   window.ROAR_LIVE = LIVE;
 
   const players = [];
@@ -253,8 +253,23 @@
     }
   }
 
+  function drawHighlight() {
+    const h = LIVE.highlight; if (!h) return;
+    const p1 = project(h.x, h.y, 0), p2 = project(h.ex, h.ey, 0);
+    if (!p1 || !p2) return;
+    g.save();
+    g.setLineDash([7, 7]);
+    g.beginPath(); g.moveTo(p1[0], p1[1]); g.lineTo(p2[0], p2[1]);
+    g.strokeStyle = 'rgba(212,255,63,.75)'; g.lineWidth = 2.2; g.stroke();
+    g.restore();
+    for (const p of [p1, p2]) {
+      g.beginPath(); g.arc(p[0], p[1], 13, 0, 7);
+      g.strokeStyle = 'rgba(212,255,63,.5)'; g.lineWidth = 1.6; g.stroke();
+    }
+  }
+
   function drawBall() {
-    const d = project(LIVE.bx, LIVE.by, 0.9);
+    const d = project(LIVE.bx, LIVE.by, LIVE.bz || 0.9);
     if (!d) return;
     const r = Math.max(5, 10 * (28 / d[2]));
     const sh = project(LIVE.bx, LIVE.by, 0);
@@ -290,6 +305,7 @@
     drawTurf();
     drawMarkings();
     drawShots();
+    drawHighlight();
     drawPlayers();
     drawBall();
 

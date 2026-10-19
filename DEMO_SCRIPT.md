@@ -1,13 +1,13 @@
 # ROAR — 2-minute demo video script
 
-> Record at **1600×1000** (or 1920×1080). Open `web/app/index.html?demo=1` and
+> Record at **1600×1000** (or 1920×1080). Open `web/app/index.html?auto` and
 > screen-record in one take — the app auto-directs the whole story.
-> Total runtime **~85 s**, leaving headroom under the 2:00 hard cap.
+> Total runtime **~75 s**, leaving headroom under the 2:00 hard cap.
 
 ## Pre-roll (before recording)
 1. `python3 engine/build.py` (regenerates `web/app/data.js`)
 2. `python3 -m http.server 8788`
-3. Open `http://localhost:8788/web/app/?demo=1`
+3. Open `http://localhost:8788/web/app/?auto`
 4. Hide the browser chrome / bookmarks bar. Full-screen the tab.
 5. Start recording, then reload the tab so the take begins at 0:00.
 
