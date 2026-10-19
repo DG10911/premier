@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ROAR — Feel the match</title>
+<style>
+  :root{
+    --bg:#06080f; --panel:#0d1220; --panel2:#121a2e; --line:#1d2942;
+    --txt:#e8eefc; --dim:#8ea0c4; --home:#22d3ee; --away:#f59e0b;
+    --gold:#ffd34e; --danger:#ff4d6d; --press:#7c5cff; --calm:#3b4a6b;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:radial-gradient(1200px 700px at 70% -10%,#12203c 0%,#06080f 55%);
+    color:var(--txt);font-family:ui-sans-serif,-apple-system,"Segoe UI",Inter,Roboto,sans-serif;
+    overflow:hidden;
+  }
+  .app{display:grid;grid-template-rows:auto 1fr auto;height:100vh}
+
+  /* ---------- top bar ---------- */
+  header{display:flex;align-items:center;gap:18px;padding:12px 20px;
+    border-bottom:1px solid var(--line);background:rgba(9,13,24,.7);backdrop-filter:blur(8px)}
+  .brand{font-weight:800;letter-spacing:.16em;font-size:15px}
+  .brand span{color:var(--gold)}
+  .brand small{display:block;font-weight:500;letter-spacing:.02em;color:var(--dim);font-size:10px}
+  .match{display:flex;align-items:center;gap:14px;margin-left:6px}
+  .team{font-weight:700;font-size:14px}
+  .team.h{color:var(--home)} .team.a{color:var(--away)}
+  .score{font-variant-numeric:tabular-nums;font-size:26px;font-weight:800;letter-spacing:.05em;
+    background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:2px 14px}
+  .clock{font-variant-numeric:tabular-nums;color:var(--dim);font-weight:600}
+  .spacer{flex:1}
+  .stat{text-align:right;min-width:84px}
+  .stat b{display:block;font-size:13px}
+  .stat small{color:var(--dim);font-size:10px;letter-spacing:.06em}
+
+  /* ---------- middle ---------- */
+  main{display:grid;grid-template-columns:1.25fr .95fr;gap:16px;padding:16px 20px;min-height:0}
+  .pitchwrap{position:relative;background:linear-gradient(180deg,#07130c,#04110a);
+    border:1px solid var(--line);border-radius:16px;overflow:hidden;min-height:0}
+  svg.pitch{width:100%;height:100%;display:block}
+  .glyphlayer{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+
+  .side{display:flex;flex-direction:column;gap:12px;min-height:0}
+  .card{background:linear-gradient(180deg,var(--panel),#0a0f1c);border:1px solid var(--line);
+    border-radius:14px;padding:14px}
+  .card h3{margin:0 0 8px;font-size:11px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase}
+
+  .caption{font-size:19px;line-height:1.35;font-weight:600;min-height:84px}
+  .caption .kind{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);display:block;margin-bottom:6px}
+  .evidence{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .chip{font-size:10.5px;font-variant-numeric:tabular-nums;background:var(--panel2);
+    border:1px solid var(--line);color:var(--dim);padding:3px 8px;border-radius:999px}
+  .chip b{color:var(--txt)}
+
+  .feed{overflow:auto;flex:1;display:flex;flex-direction:column;gap:6px;min-height:0}
+  .feed .item{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--dim);
+    border-left:2px solid var(--line);padding:4px 8px;border-radius:0 8px 8px 0;opacity:.45}
+  .feed .item.on{opacity:1;color:var(--txt);background:var(--panel2);border-left-color:var(--gold)}
+  .feed .item .m{font-variant-numeric:tabular-nums;color:var(--dim);min-width:30px}
+
+  /* ---------- bottom ---------- */
+  footer{border-top:1px solid var(--line);background:rgba(9,13,24,.7);padding:10px 20px;display:flex;flex-direction:column;gap:10px}
+  .controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  button{background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:10px;
+    padding:8px 14px;font-weight:700;cursor:pointer;font-size:13px;transition:.15s}
+  button:hover{border-color:var(--gold);color:var(--gold)}
+  button.primary{background:linear-gradient(180deg,#ffd34e,#f4b400);color:#1a1200;border:none}
+  .seg{display:flex;background:var(--panel2);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .seg button{border:none;border-radius:0;background:transparent;padding:8px 12px}
+  .seg button.on{background:var(--gold);color:#1a1200}
+  select{background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:8px}
+  input[type=range]{flex:1;accent-color:var(--gold)}
+  .label{font-size:11px;color:var(--dim);letter-spacing:.08em}
+
+  .momentum{height:34px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;position:relative;overflow:hidden}
+  .momentum .mid{position:absolute;left:50%;top:0;bottom:0;width:1px;background:var(--line)}
+  .momentum .bar{position:absolute;top:4px;bottom:4px;border-radius:4px}
+  .haptic{height:34px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    display:flex;align-items:center;gap:2px;padding:0 8px;overflow:hidden}
+  .haptic .b{width:3px;background:var(--calm);border-radius:2px;height:8px;transition:.12s}
+  .haptic.on .b{background:var(--gold)}
+
+  /* ---------- glyph animations ---------- */
+  .glyph{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    border-radius:50%;pointer-events:none;mix-blend-mode:screen}
+  @keyframes g-burst{0%{width:20px;height:20px;opacity:.95;border-color:#fff;box-shadow:0 0 40px 20px var(--gold)}
+    100%{width:520px;height:520px;opacity:0;border-color:transparent}}
+  @keyframes g-ring{0%{width:30px;height:30px;opacity:.9}100%{width:420px;height:420px;opacity:0}}
+  @keyframes g-shard{0%{opacity:.9;transform:translate(-50%,-50%) rotate(0)}100%{opacity:0;transform:translate(-50%,-50%) rotate(35deg) scale(1.6)}}
+  .g-burst{border:6px solid var(--gold);animation:g-burst .9s ease-out forwards}
+  .g-ring{border:4px solid #fff;animation:g-ring .8s ease-out forwards}
+  .g-target{border:4px solid var(--gold);animation:g-ring .7s ease-out forwards}
+  .g-shard{border:4px solid var(--danger);width:120px;height:120px;border-radius:6px;animation:g-shard .7s ease-out forwards}
+  .g-grip{border:5px solid var(--press);animation:g-ring .6s ease-out forwards}
+  .g-coil{border:5px dashed var(--away);animation:g-ring .9s ease-out forwards}
+  .g-arrow,.g-dot{display:none}
+
+  .vignette{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .3s}
+  .vignette.flash{opacity:1}
+  .v-goal{box-shadow:inset 0 0 160px 40px rgba(255,211,78,.55)}
+  .v-danger{box-shadow:inset 0 0 160px 40px rgba(255,77,109,.4)}
+  .v-press{box-shadow:inset 0 0 160px 40px rgba(124,92,255,.35)}
+
+  .badge{position:absolute;left:12px;top:12px;display:flex;gap:8px;flex-wrap:wrap}
+  .badge .p{font-size:10px;letter-spacing:.1em;background:rgba(6,8,15,.7);border:1px solid var(--line);
+    padding:4px 9px;border-radius:999px;color:var(--dim)}
+  .badge .p b{color:var(--gold)}
+  .start{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:14px;background:rgba(6,8,15,.82);backdrop-filter:blur(3px);z-index:5}
+  .start h1{font-size:34px;letter-spacing:.18em;margin:0}
+  .start p{color:var(--dim);margin:0;max-width:440px;text-align:center;font-size:13px}
+  .dimmed{opacity:.25 !important;filter:saturate(.4)}
+  @media (max-width:900px){main{grid-template-columns:1fr}.side{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">R<span>O</span>AR<small>the match, for fans who can't hear it</small></div>
+    <div class="match">
+      <span class="team h" id="tHome">Northbridge FC</span>
+      <span class="score" id="score">0–0</span>
+      <span class="team a" id="tAway">Riverside United</span>
+      <span class="clock" id="clock">0'</span>
+    </div>
+    <div class="spacer"></div>
+    <div class="stat"><b id="xgh" style="color:var(--home)">0.00</b><small>xG HOME</small></div>
+    <div class="stat"><b id="wph">50%</b><small>WIN PROB</small></div>
+    <div class="stat"><b id="xga" style="color:var(--away)">0.00</b><small>xG AWAY</small></div>
+  </header>
+
+  <main>
+    <div class="pitchwrap">
+      <svg class="pitch" viewBox="0 0 1000 620" preserveAspectRatio="xMidYMid meet" id="pitch"></svg>
+      <div class="glyphlayer" id="glyphlayer"></div>
+      <div class="vignette" id="vignette"></div>
+      <div class="badge">
+        <span class="p" id="badgeProfile">MODE <b>Deaf / HoH</b></span>
+        <span class="p" id="badgeHaptic">HAPTIC <b>ON</b></span>
+        <span class="p" id="badgeMode">FEED <b>ALL</b></span>
+      </div>
+      <div class="start" id="start">
+        <h1>F E E L&nbsp;&nbsp;T H E&nbsp;&nbsp;R O A R</h1>
+        <p>Sound off — still felt. A real-time sensory match engine. Every cue is
+        generated from code and cites the event that produced it.</p>
+        <button class="primary" id="startBtn">▶  Start the match</button>
+        <p style="font-size:11px">Tip: open on a phone to feel the haptic track, or watch the haptic pad below.</p>
+      </div>
+    </div>
+
+    <div class="side">
+      <div class="card">
+        <h3>Live insight <span style="color:var(--dim);float:right" id="cueKind">—</span></h3>
+        <div class="caption" id="caption">Press play to begin the sensory feed…</div>
+        <div class="evidence" id="evidence"></div>
+      </div>
+      <div class="card" style="flex:1;display:flex;flex-direction:column;min-height:0">
+        <h3>What you're feeling</h3>
+        <div class="feed" id="feed"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="controls">
+      <button class="primary" id="play">▶ Play</button>
+      <span class="label">MODE</span>
+      <div class="seg" id="profileSeg">
+        <button data-p="deaf" class="on">Deaf / HoH</button>
+        <button data-p="casual">Casual</button>
+        <button data-p="analyst">Analyst</button>
+        <button data-p="cognitive">Cognitive-easy</button>
+      </div>
+      <span class="label">LANG</span>
+      <select id="lang">
+        <option value="en">English</option>
+        <option value="es">Español</option>
+        <option value="fr">Français</option>
+        <option value="sw">Kiswahili</option>
+      </select>
+      <span class="label">FOCUS</span>
+      <select id="focus"><option value="">Whole match</option></select>
+      <span class="label">SPEED</span>
+      <div class="seg" id="speedSeg">
+        <button data-s="0.5">0.5×</button>
+        <button data-s="1" class="on">1×</button>
+        <button data-s="2">2×</button>
+        <button data-s="4">4×</button>
+      </div>
+    </div>
+    <div class="controls">
+      <span class="label" style="min-width:34px" id="tlabel">0'</span>
+      <input type="range" id="scrub" min="0" max="5400" value="0" step="1" />
+      <span class="label">MOMENTUM</span>
+      <div class="momentum" id="mom"><div class="mid"></div></div>
+      <span class="label">HAPTIC PAD</span>
+      <div class="haptic" id="hapticPad"></div>
+    </div>
+  </footer>
+</div>
+
+<script src="perception-data.js"></script>
+<script>
+const D = window.ROAR_DATA;
+const P = { home:'#22d3ee', away:'#f59e0b' };
+const state = {
+  t: 0, playing:false, speed:1, profile:'deaf', focus:'', lang:'en',
+  lastFrame:0, cueIdx:0, cur:null, hapticOn:true,
+};
+const MAXT = D.meta.minutes*60;
+
+/* ---------- pitch ---------- */
+const svg = document.getElementById('pitch');
+function sx(x){return 60 + x/100*880;}
+function sy(y){return 40 + y/100*540;}
+function buildPitch(){
+  const parts=[];
+  parts.push(`<rect x="20" y="20" width="960" height="580" rx="8" fill="none" stroke="#1f3b2a" stroke-width="3"/>`);
+  parts.push(`<line x1="500" y1="20" x2="500" y2="600" stroke="#1f3b2a" stroke-width="2"/>`);
+  parts.push(`<circle cx="500" cy="310" r="70" fill="none" stroke="#1f3b2a" stroke-width="2"/>`);
+  parts.push(`<circle cx="500" cy="310" r="3" fill="#1f3b2a"/>`);
+  parts.push(`<rect x="20" y="180" width="120" height="260" fill="none" stroke="#1f3b2a" stroke-width="2"/>`);
+  parts.push(`<rect x="860" y="180" width="120" height="260" fill="none" stroke="#1f3b2a" stroke-width="2"/>`);
+  parts.push(`<rect x="20" y="255" width="40" height="110" fill="none" stroke="#1f3b2a" stroke-width="2"/>`);
+  parts.push(`<rect x="940" y="255" width="40" height="110" fill="none" stroke="#1f3b2a" stroke-width="2"/>`);
+  // players (faint base positions)
+  D.players.forEach(p=>{
+    const isHome = p.team==='home';
+    const x = isHome? p.base_x : 100-p.base_x;
+    const y = isHome? p.base_y : 100-p.base_y;
+    parts.push(`<circle cx="${sx(x)}" cy="${sy(y)}" r="7" fill="${isHome?P.home:P.away}" opacity=".22"/>`);
+  });
+  parts.push(`<circle id="ball" cx="500" cy="310" r="9" fill="#fff" stroke="#0b1020" stroke-width="2"/>`);
+  parts.push(`<circle id="ballGlow" cx="500" cy="310" r="22" fill="#fff" opacity="0"/>`);
+  svg.innerHTML = parts.join('');
+}
+buildPitch();
+
+/* ---------- helpers ---------- */
+function eventsAt(t){
+  let lo=0, hi=D.events.length-1, idx=-1;
+  while(lo<=hi){const m=(lo+hi)>>1; if(D.events[m].t<=t){idx=m;lo=m+1}else hi=m-1;}
+  return idx;
+}
+function momentumAt(t){
+  const M=D.momentum; if(!M.length) return 0;
+  for(let i=0;i<M.length;i++){ if(M[i+1] && t<M[i+1].t){return M[i].v;} }
+  return M[M.length-1].v;
+}
+function fmtClock(t){return `${Math.floor(t/60)}'`;}
+
+/* ---------- HUD ---------- */
+function renderHUD(){
+  const i = eventsAt(state.t);
+  const ev = i>=0? D.events[i] : null;
+  document.getElementById('clock').textContent = fmtClock(state.t);
+  document.getElementById('tlabel').textContent = fmtClock(state.t);
+  if(ev){
+    document.getElementById('score').textContent = ev.score.replace('-','–');
+    document.getElementById('xgh').textContent = (ev.xg_home||0).toFixed(2);
+    document.getElementById('xga').textContent = (ev.xg_away||0).toFixed(2);
+    document.getElementById('wph').textContent = Math.round((ev.win_prob_home||0.5)*100)+'%';
+  }
+  // ball position
+  const ball=document.getElementById('ball'), glow=document.getElementById('ballGlow');
+  if(ev){
+    const bx=sx(ev.x), by=sy(ev.y);
+    ball.setAttribute('cx',bx); ball.setAttribute('cy',by);
+    glow.setAttribute('cx',bx); glow.setAttribute('cy',by);
+    const col = ev.team==='home'?P.home:P.away;
+    glow.setAttribute('fill',col);
+  }
+  // momentum
+  const v = momentumAt(state.t);
+  const mag = Math.min(Math.abs(v)/6,1)*50;
+  const mom=document.getElementById('mom');
+  let bar=mom.querySelector('.bar');
+  if(!bar){bar=document.createElement('div');bar.className='bar';mom.appendChild(bar);}
+  if(v>=0){bar.style.left='50%';bar.style.width=mag+'%';bar.style.background=P.home;}
+  else{bar.style.left=(50-mag)+'%';bar.style.width=mag+'%';bar.style.background=P.away;}
+}
+
+/* ---------- cues ---------- */
+function registerFor(profile){
+  return profile==='analyst'?'analyst':(profile==='cognitive'?'cognitive':'casual');
+}
+function glyphClass(shape,profile){
+  if(profile==='cognitive') return shape==='burst'?'g-ring':'';
+  const map={burst:'g-burst',target:'g-target',shard:'g-shard',grip:'g-grip',ring:'g-ring',coil:'g-coil',arrow:'',dot:''};
+  return map[shape]||'';
+}
+function vibratePattern(p){
+  const M={surge:[40,30,40,30,120],pulse:[30,40,30],tap:[18],rumble:[60,40,60],
+           wave:[20,30,20,30],flat:[10],tighten:[80,60,80],double:[50,60,50]};
+  return M[p]||[30];
+}
+function hapticBars(intensity,on){
+  const pad=document.getElementById('hapticPad');
+  if(!pad.children.length){for(let i=0;i<42;i++){const b=document.createElement('div');b.className='b';pad.appendChild(b);}}
+  const arr=[...pad.children];
+  arr.forEach((b,i)=>{
+    const center=Math.exp(-Math.pow((i-21)/9,2));
+    const h = on? 6 + intensity*center*26*(0.7+Math.random()*0.3) : 6;
+    b.style.height=h+'px'; b.style.background = on? '#ffd34e':'#2a3550';
+  });
+  pad.classList.toggle('on', on);
+  setTimeout(()=>{arr.forEach(b=>b.style.height='8px');}, 260);
+}
+function passFocus(cue){
+  if(!state.focus) return true;
+  if(state.focus.startsWith('p:')) return cue.player===state.focus.slice(2);
+  if(state.focus.startsWith('t:')) return cue.team===state.focus.slice(2);
+  return true;
+}
+function emitCue(cue){
+  if(!passFocus(cue)) return;
+  state.cur=cue;
+  const reg=registerFor(state.profile);
+  const caps=cue.caption[state.lang]||cue.caption.en;
+  // caption
+  const cap=document.getElementById('caption');
+  cap.innerHTML = `<span class="kind">${cue.kind} · ${cue.minute} · salience ${cue.salience}</span>${caps[reg]}`;
+  document.getElementById('cueKind').textContent = cue.kind.toUpperCase();
+  // evidence chips (grounding)
+  const ev=document.getElementById('evidence');
+  const m=cue.metrics;
+  const chips=[];
+  if(cue.player) chips.push(`player <b>${cue.player}</b>`);
+  if(m.xg!=null) chips.push(`xG <b>${(+m.xg).toFixed(2)}</b>`);
+  if(m.xt!=null) chips.push(`xT <b>${(+m.xt).toFixed(3)}</b>`);
+  if(m.xt_gain!=null) chips.push(`ΔxT <b>${(+m.xt_gain>=0?'+':'')}${(+m.xt_gain).toFixed(3)}</b>`);
+  if(m.win_prob_home!=null) chips.push(`win% <b>${Math.round(m.win_prob_home*100)}</b>`);
+  chips.push(`evidence <b>#${cue.evidence.join(', #')}</b>`);
+  ev.innerHTML = chips.map(c=>`<span class="chip">${c}</span>`).join('');
+  // glyph
+  const gl=document.getElementById('glyphlayer');
+  const cls=glyphClass(cue.glyph.shape, state.profile);
+  if(cls && state.profile!=='analyst'){
+    const g=document.createElement('div'); g.className='glyph '+cls; gl.appendChild(g);
+    setTimeout(()=>g.remove(), 1000);
+  }
+  // vignette
+  const v=document.getElementById('vignette');
+  v.className='vignette'; void v.offsetWidth;
+  if(cue.kind==='goal') v.classList.add('v-goal','flash');
+  else if(cue.kind==='chance'||cue.kind==='danger') v.classList.add('v-danger','flash');
+  else if(cue.kind==='press'||cue.kind==='tension') v.classList.add('v-press','flash');
+  setTimeout(()=>v.classList.remove('flash'), 350);
+  // haptic
+  const on = state.hapticOn && cue.kind!=='calm';
+  hapticBars(cue.haptic.intensity, on);
+  if(state.hapticOn && navigator.vibrate) navigator.vibrate(vibratePattern(cue.haptic.pattern));
+  // feed
+  const feed=document.getElementById('feed');
+  [...feed.children].forEach(c=>c.classList.remove('on'));
+  const item=document.createElement('div'); item.className='item on';
+  item.innerHTML=`<span class="m">${cue.minute}</span><span>${caps.casual}</span>`;
+  feed.prepend(item);
+  while(feed.children.length>40) feed.lastChild.remove();
+}
+
+/* ---------- loop ---------- */
+function frame(ts){
+  if(!state.lastFrame) state.lastFrame=ts;
+  const dt=(ts-state.lastFrame)/1000; state.lastFrame=ts;
+  if(state.playing){
+    const matchPerSec = 60*state.speed; // 1 real sec = speed match-minutes
+    state.t += dt*matchPerSec;
+    if(state.t>=MAXT){state.t=MAXT; setPlaying(false);}
+    document.getElementById('scrub').value=Math.floor(state.t);
+    renderHUD();
+    while(state.cueIdx<D.cues.length && D.cues[state.cueIdx].t<=state.t){
+      emitCue(D.cues[state.cueIdx]); state.cueIdx++;
+    }
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ---------- controls ---------- */
+function setPlaying(p){
+  state.playing=p;
+  document.getElementById('play').textContent = p?'❚❚ Pause':'▶ Play';
+}
+document.getElementById('play').onclick=()=>setPlaying(!state.playing);
+document.getElementById('startBtn').onclick=()=>{
+  document.getElementById('start').style.display='none';
+  setPlaying(true);
+};
+document.getElementById('scrub').oninput=(e)=>{
+  state.t=+e.target.value;
+  state.cueIdx=D.cues.findIndex(c=>c.t>state.t); if(state.cueIdx<0)state.cueIdx=D.cues.length;
+  renderHUD();
+};
+document.getElementById('profileSeg').onclick=(e)=>{
+  const b=e.target.closest('button'); if(!b)return;
+  [...e.currentTarget.children].forEach(x=>x.classList.remove('on')); b.classList.add('on');
+  state.profile=b.dataset.p;
+  state.hapticOn = state.profile!=='analyst';
+  document.getElementById('badgeProfile').innerHTML=`MODE <b>${{deaf:'Deaf / HoH',casual:'Casual',analyst:'Analyst',cognitive:'Cognitive-easy'}[state.profile]}</b>`;
+  document.getElementById('badgeHaptic').innerHTML=`HAPTIC <b>${state.hapticOn?'ON':'OFF'}</b>`;
+};
+document.getElementById('speedSeg').onclick=(e)=>{
+  const b=e.target.closest('button'); if(!b)return;
+  [...e.currentTarget.children].forEach(x=>x.classList.remove('on')); b.classList.add('on');
+  state.speed=+b.dataset.s;
+};
+// focus + badges
+const focusSel=document.getElementById('focus');
+const teams=[['home',D.meta.home],['away',D.meta.away]];
+const uniq=[...new Set(D.events.filter(e=>e.player).map(e=>e.player))].sort();
+focusSel.innerHTML = `<option value="">Whole match</option>`+
+  teams.map(([k,n])=>`<option value="t:${k}">Club · ${n}</option>`).join('')+
+  uniq.map(p=>`<option value="p:${p}">Player · ${p}</option>`).join('');
+focusSel.onchange=(e)=>{
+  state.focus=e.target.value;
+  document.getElementById('badgeMode').innerHTML=`FEED <b>${state.focus?e.target.selectedOptions[0].textContent:'ALL'}</b>`;
+  document.getElementById('feed').innerHTML='';
+  state.cueIdx=D.cues.findIndex(c=>c.t>state.t); if(state.cueIdx<0)state.cueIdx=D.cues.length;
+};
+document.getElementById('lang').onchange=(e)=>{
+  state.lang=e.target.value;
+  if(state.cur){ const caps=state.cur.caption[state.lang]||state.cur.caption.en;
+    document.getElementById('caption').innerHTML=
+      `<span class="kind">${state.cur.kind} · ${state.cur.minute} · salience ${state.cur.salience}</span>${caps[registerFor(state.profile)]}`; }
+};
+document.getElementById('tHome').textContent=D.meta.home;
+document.getElementById('tAway').textContent=D.meta.away;
+renderHUD();
+if(location.search.includes('auto')){
+  document.getElementById('start').style.display='none';
+  const q=new URLSearchParams(location.search);
+  if(q.get('t')){ state.t=+q.get('t'); state.cueIdx=D.cues.findIndex(c=>c.t>state.t); if(state.cueIdx<0)state.cueIdx=D.cues.length;
+    renderHUD(); for(let i=0;i<state.cueIdx;i++) if(passFocus(D.cues[i])) emitCue(D.cues[i]); }
+  setPlaying(q.get('pause')?false:true);
+}
+</script>
+</body>
+</html>

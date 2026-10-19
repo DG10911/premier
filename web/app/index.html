@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="dark" />
+<title>ROAR — Match Intelligence Console</title>
+<style>
+  :root{
+    --ink:#05070e; --ink2:#080d19; --panel:rgba(14,20,36,.66); --panel-solid:#0b1121;
+    --line:rgba(150,180,230,.14); --line2:rgba(150,180,230,.24);
+    --txt:#eef3ff; --dim:#8fa3c8; --dim2:#5f7195;
+    --home:#3fe1f2; --away:#f7ad3c; --live:#ffd34e; --danger:#ff5a78; --calm:#2b3a5c;
+    --r:18px; --r-sm:12px; --pill:999px;
+    --sans:"Avenir Next","SF Pro Display",ui-sans-serif,-apple-system,"Segoe UI",system-ui,sans-serif;
+    --mono:"SF Mono",ui-monospace,"JetBrains Mono","Roboto Mono",Menlo,monospace;
+    --ease:cubic-bezier(.16,1,.3,1);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{background:var(--ink);color:var(--txt);font-family:var(--sans);overflow:hidden;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  a{color:inherit}
+  button,select,input{font:inherit;color:inherit}
+  button{cursor:pointer;background:none;border:none}
+  :focus-visible{outline:3px solid var(--live);outline-offset:3px;border-radius:6px}
+  .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .skip{position:absolute;left:-999px;top:0;z-index:99;background:var(--live);color:#1a1200;padding:10px 16px;border-radius:0 0 10px 0;font-weight:800}
+  .skip:focus{left:0}
+
+  /* ---------- background layers ---------- */
+  .stage{position:fixed;inset:0;z-index:0;overflow:hidden;background:#04060c}
+  canvas#scene{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .aurora{position:absolute;inset:-20%;pointer-events:none;mix-blend-mode:screen;opacity:.55;
+    background:
+      radial-gradient(46% 38% at 16% 8%, rgba(63,225,242,.16), transparent 62%),
+      radial-gradient(42% 34% at 86% 14%, rgba(247,173,60,.13), transparent 64%),
+      radial-gradient(60% 50% at 55% 104%, rgba(46,86,180,.18), transparent 62%);
+    filter:saturate(1.05);animation:drift 38s var(--ease) infinite alternate}
+  @keyframes drift{0%{transform:translate3d(-2%,-1%,0) scale(1.06)}100%{transform:translate3d(2%,1%,0) scale(1.12)}}
+  canvas#particles{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  .grain{position:fixed;inset:0;z-index:60;pointer-events:none;opacity:.05;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+  .vig{position:fixed;inset:0;z-index:59;pointer-events:none;
+    box-shadow:inset 0 0 240px 60px rgba(0,0,0,.66)}
+
+  /* ---------- frame ---------- */
+  .app{position:relative;z-index:2;height:100dvh;display:grid;grid-template-rows:auto 1fr auto;gap:0}
+
+  /* ---------- top bar ---------- */
+  header{display:flex;align-items:center;gap:18px;padding:12px clamp(14px,2vw,26px);
+    border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(10,14,26,.86),rgba(9,13,24,.55));
+    backdrop-filter:blur(14px) saturate(1.1)}
+  .brand{display:flex;align-items:center;gap:12px}
+  .mark{width:34px;height:34px;border-radius:10px;position:relative;flex:none;
+    background:radial-gradient(circle at 32% 28%,#1b2742,#0a1120);border:1px solid var(--line2);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 8px 24px rgba(0,0,0,.4)}
+  .mark::after{content:"";position:absolute;inset:7px;border-radius:6px;
+    background:conic-gradient(from 210deg,var(--home),var(--live),var(--away),var(--home));
+    filter:blur(.2px);opacity:.92}
+  .brand h1{margin:0;font-size:16px;font-weight:800;letter-spacing:.2em}
+  .brand small{display:block;color:var(--dim);font-size:10px;letter-spacing:.16em;text-transform:uppercase;margin-top:1px}
+
+  .scorebug{display:flex;align-items:center;gap:14px;padding:6px 16px;border-radius:var(--pill);
+    background:var(--panel);border:1px solid var(--line2);backdrop-filter:blur(12px);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 10px 30px rgba(0,0,0,.35)}
+  .crest{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-weight:900;font-size:12px;flex:none}
+  .crest.h{background:linear-gradient(160deg,rgba(63,225,242,.9),rgba(63,225,242,.35));color:#04131a}
+  .crest.a{background:linear-gradient(160deg,rgba(247,173,60,.92),rgba(247,173,60,.35));color:#1a1000}
+  .tname{font-weight:700;font-size:13.5px;letter-spacing:.01em}
+  .tname.h{color:var(--home)}.tname.a{color:var(--away)}
+  .score{font-family:var(--mono);font-size:24px;font-weight:800;letter-spacing:.06em;padding:0 6px}
+  .clock{font-family:var(--mono);font-size:13px;color:var(--dim);min-width:44px;text-align:center}
+  .versus{color:var(--dim2);font-size:12px}
+
+  .hud{display:flex;align-items:center;gap:20px;margin-left:auto}
+  .metric{text-align:right;min-width:66px}
+  .metric b{display:block;font-family:var(--mono);font-size:15px;font-weight:700}
+  .metric small{color:var(--dim2);font-size:9.5px;letter-spacing:.14em}
+  .auditpill{display:flex;align-items:center;gap:7px;padding:5px 11px;border-radius:var(--pill);
+    border:1px solid var(--line2);font-size:10px;letter-spacing:.13em;color:var(--dim);background:var(--panel)}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--home);box-shadow:0 0 10px var(--home)}
+  .auditpill.blocked{color:var(--danger);border-color:rgba(255,90,120,.5)}
+  .auditpill.blocked .dot{background:var(--danger);box-shadow:0 0 10px var(--danger)}
+
+  /* ---------- main ---------- */
+  main{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(330px,.85fr);gap:16px;
+    padding:16px clamp(14px,2vw,26px);min-height:0}
+
+  .pitchpanel{position:relative;min-height:0;border-radius:var(--r);overflow:hidden;
+    border:1px solid var(--line);background:
+      radial-gradient(120% 90% at 50% -10%,rgba(30,60,120,.18),transparent 62%),
+      linear-gradient(180deg,rgba(6,11,20,.55),rgba(4,7,14,.72));
+    backdrop-filter:blur(2px);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 30px 80px rgba(0,0,0,.5)}
+  .pitchpanel::before{content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(60% 50% at 50% 40%,transparent,rgba(0,0,0,.35))}
+
+  .stage3d{position:absolute;inset:0;display:grid;place-items:center;perspective:1500px}
+  .pitch3d{position:relative;width:min(94%,880px);aspect-ratio:1000/620;transform-style:preserve-3d;
+    transform:rotateX(26deg) rotateZ(0deg);transition:transform .5s var(--ease)}
+  .turf{position:absolute;inset:0;border-radius:20px;overflow:hidden;
+    background:
+      radial-gradient(120% 90% at 50% 0%,rgba(46,120,74,.35),transparent 55%),
+      repeating-linear-gradient(90deg,#0c3320 0 46px,#0a2c1c 46px 92px),
+      linear-gradient(180deg,#0a2c1c,#071c13);
+    border:1px solid rgba(120,220,160,.16);
+    box-shadow:0 60px 120px rgba(0,0,0,.6),inset 0 0 120px rgba(0,0,0,.5);
+    transform:translateZ(0)}
+  .turf::after{content:"";position:absolute;inset:0;border-radius:20px;
+    background:radial-gradient(70% 60% at 50% 12%,rgba(255,255,255,.10),transparent 60%)}
+  svg.lines{position:absolute;inset:0;width:100%;height:100%}
+  .tokens{position:absolute;inset:0;transform-style:preserve-3d}
+  .tk{position:absolute;width:15px;height:15px;border-radius:50%;transform:translate(-50%,-50%);
+    box-shadow:0 8px 10px rgba(0,0,0,.5)}
+  .tk.home{background:radial-gradient(circle at 35% 30%,#bff6ff,var(--home));box-shadow:0 8px 12px rgba(0,0,0,.5),0 0 14px rgba(63,225,242,.5)}
+  .tk.away{background:radial-gradient(circle at 35% 30%,#ffe3ac,var(--away));box-shadow:0 8px 12px rgba(0,0,0,.5),0 0 14px rgba(247,173,60,.5)}
+  .tk.shadow::after{content:"";position:absolute;left:50%;top:70%;width:22px;height:8px;border-radius:50%;
+    background:rgba(0,0,0,.5);transform:translate(-50%,0) scaleY(.5)}
+  #ball{position:absolute;width:18px;height:18px;border-radius:50%;transform:translate(-50%,-50%);z-index:3;
+    background:
+      radial-gradient(circle at 32% 26%, #ffffff 0%, #eef4ff 26%, #c8d5ea 58%, #7f90ad 82%, #4a5872 100%);
+    box-shadow:
+      0 10px 16px rgba(0,0,0,.65),
+      0 0 22px rgba(255,255,255,.5),
+      inset -2px -3px 6px rgba(0,0,0,.45),
+      inset 2px 2px 5px rgba(255,255,255,.85);
+    transition:left .18s linear, top .18s linear}
+  #ball::after{content:"";position:absolute;inset:0;border-radius:50%;
+    background:
+      radial-gradient(circle at 62% 68%, rgba(20,28,45,.55) 0 12%, transparent 13%),
+      radial-gradient(circle at 26% 62%, rgba(20,28,45,.4) 0 9%, transparent 10%),
+      radial-gradient(circle at 50% 18%, rgba(20,28,45,.32) 0 8%, transparent 9%);
+    mix-blend-mode:multiply;opacity:.9}
+  #balltrail{position:absolute;width:46px;height:46px;border-radius:50%;transform:translate(-50%,-50%);z-index:2;
+    background:radial-gradient(circle,var(--home),transparent 70%);opacity:0;filter:blur(3px);transition:opacity .3s}
+  #ballshadow{position:absolute;width:22px;height:8px;border-radius:50%;transform:translate(-50%,-50%);z-index:1;
+    background:rgba(0,0,0,.55);filter:blur(3px);transition:left .18s linear, top .18s linear}
+  .shock{position:absolute;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;
+    border:3px solid var(--live);animation:shock 1s var(--ease) forwards;mix-blend-mode:screen}
+  @keyframes shock{0%{width:10px;height:10px;opacity:.95}100%{width:min(80%,760px);height:min(80%,760px);opacity:0;border-width:1px}}
+  .sweep{position:absolute;inset:0;pointer-events:none;opacity:0;
+    background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.16) 48%,transparent 66%);}
+  .sweep.go{animation:sweep 1.1s var(--ease)}
+  @keyframes sweep{0%{opacity:0;transform:translateX(-30%)}30%{opacity:1}100%{opacity:0;transform:translateX(30%)}}
+
+  .pitchbadges{position:absolute;left:14px;top:14px;display:flex;gap:8px;flex-wrap:wrap;z-index:3}
+  .chip{font-size:10px;letter-spacing:.12em;background:rgba(6,10,20,.7);border:1px solid var(--line);
+    padding:5px 10px;border-radius:var(--pill);color:var(--dim);backdrop-filter:blur(8px)}
+  .chip b{color:var(--live);font-weight:700}
+  .varline{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:4;max-width:92%;
+    padding:9px 16px;border-radius:var(--pill);font-size:12.5px;display:none;text-align:center;
+    background:rgba(255,211,78,.14);border:1px solid rgba(255,211,78,.6);color:var(--live);
+    box-shadow:0 0 30px rgba(255,211,78,.25)}
+  .varline.on{display:block;animation:pop .5s var(--ease)}
+  @keyframes pop{from{transform:translateX(-50%) translateY(8px);opacity:0}to{transform:translateX(-50%);opacity:1}}
+
+  .goalword{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;z-index:5;opacity:0}
+  .goalword.on{animation:goalword 1.4s var(--ease)}
+  .goalword span{font-size:clamp(48px,11vw,150px);font-weight:900;letter-spacing:.04em;
+    background:linear-gradient(180deg,#fff,var(--live));-webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 0 60px rgba(255,211,78,.5)}
+  @keyframes goalword{0%{opacity:0;transform:scale(.7)}20%{opacity:1;transform:scale(1.02)}80%{opacity:1}100%{opacity:0;transform:scale(1.06)}}
+
+  /* ---------- right rail ---------- */
+  .rail{display:flex;flex-direction:column;gap:14px;min-height:0}
+  .card{position:relative;border-radius:var(--r);padding:16px;border:1px solid var(--line);
+    background:var(--panel);backdrop-filter:blur(14px) saturate(1.05);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 20px 50px rgba(0,0,0,.4)}
+  .card h3{margin:0 0 10px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);
+    display:flex;justify-content:space-between;align-items:center}
+  .card h3 .tag{color:var(--live);letter-spacing:.1em}
+
+  .captionbox .lead{font-size:20px;line-height:1.32;font-weight:650;min-height:76px}
+  .captionbox .lead .sup{color:var(--danger);font-weight:800;display:block;margin-bottom:4px;font-size:13px}
+  .captionbox .kindline{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--live);margin-bottom:7px}
+
+  .evi{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}
+  .evi .c{font-family:var(--mono);font-size:10.5px;background:rgba(10,16,30,.7);border:1px solid var(--line);
+    padding:4px 9px;border-radius:var(--pill);color:var(--dim)}
+  .evi .c b{color:var(--txt)}
+  .verdict{margin-top:11px;font-size:12px;border-radius:var(--r-sm);padding:9px 12px;border:1px solid var(--line);
+    background:rgba(10,16,30,.6);line-height:1.4}
+  .verdict.ok{border-color:rgba(63,225,242,.5);color:var(--home)}
+  .verdict.bad{border-color:rgba(255,90,120,.5);color:var(--danger)}
+  .verdict small{display:block;color:var(--dim);margin-top:3px}
+
+  .ringrow{display:flex;align-items:center;gap:14px}
+  .ring{position:relative;width:74px;height:74px;flex:none}
+  .ring svg{transform:rotate(-90deg)}
+  .ring .val{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--mono);font-weight:800;font-size:16px}
+  .xgbars{flex:1;display:flex;flex-direction:column;gap:8px}
+  .xgbar{font-size:11px;color:var(--dim)}
+  .xgbar .track{height:7px;border-radius:var(--pill);background:rgba(255,255,255,.07);margin-top:4px;overflow:hidden}
+  .xgbar .fill{height:100%;border-radius:var(--pill);transition:width .4s var(--ease)}
+  .xgbar.h .fill{background:linear-gradient(90deg,rgba(63,225,242,.5),var(--home))}
+  .xgbar.a .fill{background:linear-gradient(90deg,rgba(247,173,60,.5),var(--away))}
+
+  .feedcard{flex:1;display:flex;flex-direction:column;min-height:0}
+  .feed{overflow:auto;flex:1;display:flex;flex-direction:column;gap:5px;min-height:0;padding-right:2px}
+  .feed .it{display:flex;gap:9px;align-items:flex-start;font-size:12.5px;color:var(--dim);
+    border-left:2px solid var(--line);padding:5px 9px;border-radius:0 10px 10px 0;transition:.2s}
+  .feed .it.on{color:var(--txt);background:rgba(63,225,242,.07);border-left-color:var(--live)}
+  .feed .it.sup{text-decoration:line-through;border-left-color:var(--danger)}
+  .feed .it .m{font-family:var(--mono);color:var(--dim2);min-width:30px;font-size:11px}
+
+  .auditbtns{display:flex;flex-wrap:wrap;gap:8px}
+  .btn{border:1px solid var(--line2);background:var(--panel-solid);border-radius:var(--r-sm);padding:9px 13px;
+    font-size:12px;font-weight:700;letter-spacing:.02em;transition:.15s}
+  .btn:hover{border-color:var(--live);color:var(--live);transform:translateY(-1px)}
+  .btn:active{transform:translateY(0) scale(.98)}
+  .btn.live{background:linear-gradient(180deg,#ffd34e,#f2ad12);color:#1a1200;border:none}
+  .btn.live:hover{color:#1a1200;filter:brightness(1.06)}
+
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid var(--line);padding:10px clamp(14px,2vw,26px);
+    background:linear-gradient(180deg,rgba(9,13,24,.6),rgba(8,11,20,.9));backdrop-filter:blur(12px);
+    display:flex;flex-direction:column;gap:10px}
+  .row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .seg{display:flex;background:rgba(10,16,30,.7);border:1px solid var(--line);border-radius:var(--pill);padding:3px}
+  .seg button{border-radius:var(--pill);padding:8px 13px;font-size:12px;font-weight:700;color:var(--dim)}
+  .seg button.on{background:var(--panel-solid);color:var(--txt);box-shadow:inset 0 1px 0 rgba(255,255,255,.1)}
+  .seg button.on{color:var(--live)}
+  select{background:rgba(10,16,30,.7);border:1px solid var(--line);border-radius:var(--pill);padding:8px 12px;font-size:12px}
+  .lbl{font-size:10px;letter-spacing:.14em;color:var(--dim2);text-transform:uppercase}
+  input[type=range]{flex:1;min-width:160px;accent-color:var(--live);height:26px}
+  canvas#mom{width:170px;height:34px;border-radius:var(--r-sm);border:1px solid var(--line);background:rgba(10,16,30,.6)}
+  .hap{width:150px;height:34px;border-radius:var(--r-sm);border:1px solid var(--line);background:rgba(10,16,30,.6);
+    display:flex;align-items:center;gap:2px;padding:0 9px;overflow:hidden}
+  .hap b{width:3px;background:var(--calm);border-radius:2px;height:7px;transition:.12s}
+  .hap.on b{background:var(--live)}
+
+  .pipe{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:10px;letter-spacing:.1em;color:var(--dim2)}
+  .pipe .st{display:flex;align-items:center;gap:6px}
+  .pipe .st i{width:6px;height:6px;border-radius:50%;background:var(--calm);display:block}
+  .pipe .st.on i{background:var(--live);box-shadow:0 0 10px var(--live)}
+  .pipe .st.on{color:var(--txt)}
+  .pipe .ar{color:var(--line2)}
+
+  /* ---------- start ---------- */
+  .start{position:absolute;inset:0;z-index:8;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:16px;text-align:center;padding:24px;background:radial-gradient(70% 70% at 50% 42%,rgba(5,8,16,.42),rgba(4,6,12,.86));
+    backdrop-filter:blur(2px) saturate(1.05)}
+  .start h2{margin:0;font-size:clamp(30px,5.4vw,60px);font-weight:900;letter-spacing:.24em;
+    background:linear-gradient(180deg,#fff,#9fc4ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .start p{max-width:520px;color:var(--dim);font-size:13.5px;line-height:1.6;margin:0}
+  .start .sub{font-size:11px;color:var(--dim2)}
+  .cta{display:inline-flex;align-items:center;gap:10px;margin-top:4px}
+
+
+  /* ---------- demo cards ---------- */
+  .democard{position:fixed;inset:0;z-index:70;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:18px;text-align:center;padding:40px;background:radial-gradient(60% 60% at 50% 45%,rgba(4,7,14,.72),rgba(3,5,10,.96));
+    opacity:0;pointer-events:none;transition:opacity .5s var(--ease);backdrop-filter:blur(4px)}
+  .democard.on{opacity:1}
+  .democard .dt{font-size:clamp(30px,5.6vw,64px);font-weight:900;letter-spacing:.16em;
+    background:linear-gradient(180deg,#fff,#9fc4ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .democard .ds{max-width:620px;color:var(--dim);font-size:15px;line-height:1.6}
+  .demobanner{position:fixed;left:50%;bottom:96px;transform:translateX(-50%) translateY(10px);z-index:65;
+    padding:11px 20px;border-radius:var(--pill);font-size:12.5px;letter-spacing:.06em;color:var(--live);
+    background:rgba(8,12,22,.92);border:1px solid rgba(255,211,78,.45);backdrop-filter:blur(10px);
+    opacity:0;pointer-events:none;transition:.35s var(--ease);white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
+  .demobanner.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  @media (max-width:700px){.demobanner{white-space:normal;text-align:center}}
+
+  .reduced *{animation:none!important;transition:none!important}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  @media (max-width:960px){
+    main{grid-template-columns:1fr}
+    .rail{flex-direction:row;flex-wrap:wrap}
+    .rail .card{flex:1 1 260px}
+    .feedcard{min-height:180px}
+    .pipe{display:none}
+  }
+  @media (max-width:640px){ .hud .metric:nth-child(3){display:none} .scorebug{gap:8px;padding:6px 10px} }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to match</a>
+
+<div class="stage" aria-hidden="true">
+  <canvas id="scene" style="opacity:.95"></canvas>
+  <div class="aurora"></div>
+  <canvas id="particles"></canvas>
+</div>
+<div class="grain" aria-hidden="true"></div>
+<div class="vig" aria-hidden="true"></div>
+<script src="scene.js"></script>
+
+<div class="app">
+  <header>
+    <div class="brand">
+      <span class="mark" aria-hidden="true"></span>
+      <div><h1>ROAR</h1><small>Match Intelligence Console</small></div>
+    </div>
+    <div class="scorebug" role="status" aria-label="Score">
+      <span class="crest h" aria-hidden="true">N</span>
+      <span class="tname h" id="tHome">Northbridge</span>
+      <span class="score" id="score">0–0</span>
+      <span class="tname a" id="tAway">Riverside</span>
+      <span class="crest a" aria-hidden="true">R</span>
+      <span class="clock mono" id="clock">0'</span>
+    </div>
+    <div class="hud">
+      <span class="auditpill" id="auditPill"><span class="dot"></span>AUDIT <b id="auditBadge">VERIFIED</b></span>
+      <div class="metric"><b id="xgh" style="color:var(--home)">0.00</b><small>xG HOME</small></div>
+      <div class="metric"><b id="wph">50%</b><small>WIN PROB</small></div>
+      <div class="metric"><b id="xga" style="color:var(--away)">0.00</b><small>xG AWAY</small></div>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="pitchpanel" aria-label="Live match pitch">
+      <div class="stage3d"><div class="pitch3d" id="pitch3d">
+        <div class="turf"></div>
+        <svg class="lines" viewBox="0 0 1000 620" preserveAspectRatio="none" aria-hidden="true">
+          <g fill="none" stroke="rgba(190,240,210,.5)" stroke-width="2.5">
+            <rect x="24" y="24" width="952" height="572" rx="6"/>
+            <line x1="500" y1="24" x2="500" y2="596"/>
+            <circle cx="500" cy="310" r="74"/><circle cx="500" cy="310" r="3.5" fill="rgba(190,240,210,.6)"/>
+            <rect x="24" y="176" width="128" height="268"/><rect x="848" y="176" width="128" height="268"/>
+            <rect x="24" y="252" width="46" height="116"/><rect x="930" y="252" width="46" height="116"/>
+            <path d="M152 250 a44 44 0 0 1 0 120"/><path d="M848 250 a44 44 0 0 0 0 120"/>
+          </g>
+        </svg>
+        <div class="tokens" id="tokens"></div>
+        <div id="balltrail"></div>
+        <div id="ballshadow"></div>
+        <div id="ball"></div>
+      </div></div>
+      <div class="sweep" id="sweep" aria-hidden="true"></div>
+      <div class="goalword" id="goalword" aria-hidden="true"><span id="goaltext">GOAL</span></div>
+      <div class="pitchbadges" aria-hidden="true">
+        <span class="chip">MODE <b id="badgeMode">ACCESSIBLE</b></span>
+        <span class="chip">HAPTIC <b id="badgeHaptic">ON</b></span>
+        <span class="chip">FEED <b id="badgeFeed">ALL</b></span>
+      </div>
+      <div class="varline" id="varline" role="status"></div>
+      <div class="start" id="start">
+        <h2>FEEL THE ROAR</h2>
+        <p>Sound off — still felt. A real-time sensory match engine. Every on-screen claim is a typed fact tied to its source event and revision, and checked before it can air.</p>
+        <button class="btn live cta" id="startBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+          Start the synthetic replay
+        </button>
+        <p class="sub">Open on a phone to feel the haptic track. Synthetic clubs and players — no real match data.</p>
+      </div>
+    </section>
+
+    <aside class="rail">
+      <div class="card captionbox">
+        <h3>Live insight <span class="tag" id="cueKind">—</span></h3>
+        <div class="kindline" id="kindline"></div>
+        <div class="lead" id="caption" aria-live="polite">Press play to begin the feed…</div>
+        <div class="evi" id="evidence"></div>
+        <div class="verdict" id="verdict" hidden></div>
+      </div>
+
+      <div class="card">
+        <h3>Match state</h3>
+        <div class="ringrow">
+          <div class="ring">
+            <svg width="74" height="74" viewBox="0 0 74 74" aria-hidden="true">
+              <circle cx="37" cy="37" r="31" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="7"/>
+              <circle id="wpRing" cx="37" cy="37" r="31" fill="none" stroke="var(--home)" stroke-width="7"
+                stroke-linecap="round" stroke-dasharray="195" stroke-dashoffset="98"/>
+            </svg>
+            <span class="val" id="wpVal">50%</span>
+          </div>
+          <div class="xgbars">
+            <div class="xgbar h">HOME xG <span class="mono" id="xgHome2">0.00</span><div class="track"><div class="fill" id="xgFillH" style="width:0%"></div></div></div>
+            <div class="xgbar a">AWAY xG <span class="mono" id="xgAway2">0.00</span><div class="track"><div class="fill" id="xgFillA" style="width:0%"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card feedcard">
+        <h3>What you're feeling</h3>
+        <div class="feed" id="feed" aria-live="polite"></div>
+      </div>
+
+      <div class="card">
+        <h3>Evidence &amp; audit</h3>
+        <div class="auditbtns">
+          <button class="btn" id="testWrong">Test an incorrect outcome</button>
+          <button class="btn" id="testUnsupported">Test an unsupported claim</button>
+          <button class="btn" id="export">Export recap</button>
+        </div>
+        <div class="verdict" id="auditBox" style="margin-top:11px">Every cue carries a typed fact. The verifier blocks anything that does not match its source event.</div>
+      </div>
+    </aside>
+  </main>
+
+  <footer>
+    <div class="row">
+      <button class="btn live" id="play">
+        <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" id="playIcon"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+        <span id="playLabel">Play</span>
+      </button>
+      <span class="lbl">MODE</span>
+      <div class="seg" id="modeSeg">
+        <button data-m="accessible" class="on">Accessible</button>
+        <button data-m="casual">Casual</button>
+        <button data-m="analyst">Analyst</button>
+      </div>
+      <span class="lbl">LANG</span>
+      <select id="lang"><option value="en">English</option><option value="es">Español</option><option value="fr">Français</option><option value="sw">Kiswahili</option></select>
+      <span class="lbl">FOCUS</span>
+      <select id="focus"><option value="">Whole match</option></select>
+      <span class="lbl">SPEED</span>
+      <div class="seg" id="speedSeg">
+        <button data-s="2">2×</button><button data-s="4" class="on">4×</button><button data-s="8">8×</button><button data-s="16">16×</button>
+      </div>
+    </div>
+    <div class="row">
+      <span class="lbl mono" id="tlabel">0'</span>
+      <input type="range" id="scrub" min="0" max="5400" value="0" step="1" aria-label="Match time" />
+      <span class="lbl">MOMENTUM</span><canvas id="mom" width="340" height="68"></canvas>
+      <span class="lbl">HAPTIC</span><div class="hap" id="hapticPad"></div>
+      <div class="pipe" aria-hidden="true">
+        <span class="st on"><i></i>Ingest</span><span class="ar">→</span>
+        <span class="st on"><i></i>Interpret</span><span class="ar">→</span>
+        <span class="st on"><i></i>Explain</span><span class="ar">→</span>
+        <span class="st on"><i></i>Render</span><span class="ar">→</span>
+        <span class="st on"><i></i>Personalize</span>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<script src="data.js"></script>
+<script>
+const D = window.ROAR;
+const P = { home:'#3fe1f2', away:'#f7ad3c' };
+const MAXT = D.meta.minutes*60;
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const state = { t:0, playing:false, speed:4, mode:'accessible', focus:'', lang:'en',
+                lastFrame:0, cueIdx:0, cur:null, hapticOn:true };
+
+/* ---------- revision-aware state + verifier (mirror of engine/verify.py) ---------- */
+function stateAt(clock){
+  const latest = new Map();
+  const evs = [...D.events].sort((a,b)=>(a.arrival-a.arrival)||(a.id<b.id?-1:1));
+  for(const e of evs){ if(e.arrival>clock) continue;
+    const cur=latest.get(e.id); if(!cur||e.revision>=cur.revision) latest.set(e.id,e); }
+  const ordered=[...latest.values()].sort((a,b)=>(a.arrival-b.arrival)||(a.id<b.id?-1:1));
+  const score={home:0,away:0};
+  for(const e of ordered) if(e.type==='goal'&&e.outcome==='scored') score[e.team]++;
+  return { events: ordered, score };
+}
+function verify(claim, st){
+  if(!claim||claim.kind!=='event_fact') return {accepted:false,reason:'Unsupported claim kind. Only typed event facts can air.'};
+  const ev=st.events.find(e=>e.id===claim.event_id);
+  if(!ev) return {accepted:false,reason:'Evidence is not available at this viewer time.'};
+  if((claim.revision||1)!==ev.revision) return {accepted:false,reason:'Evidence revision is stale (the event was corrected).'};
+  for(const k of ['player','team','type','outcome']) if(claim[k]!==ev[k]) return {accepted:false,reason:`Claim ${k} does not match the source event.`};
+  return {accepted:true,reason:'Actor, team, type, outcome and revision match the evidence.'};
+}
+
+/* ---------- 3D pitch tokens ---------- */
+const tokens = document.getElementById('tokens');
+(function buildTokens(){
+  const frag=document.createDocumentFragment();
+  for(const pl of D.players){
+    const h=pl.team==='home';
+    const x=h?pl.base_x:100-pl.base_x, y=h?pl.base_y:100-pl.base_y;
+    const t=document.createElement('div'); t.className='tk shadow '+(h?'home':'away');
+    t.style.left=x+'%'; t.style.top=y+'%';
+    frag.appendChild(t);
+  }
+  tokens.appendChild(frag);
+})();
+const pitch3d=document.getElementById('pitch3d'), ball=document.getElementById('ball'), trail=document.getElementById('balltrail'), bshadow=document.getElementById('ballshadow');
+const px=(x,y)=>{ ball.style.left=x+'%'; ball.style.top=y+'%'; trail.style.left=x+'%'; trail.style.top=y+'%'; bshadow.style.left=x+'%'; bshadow.style.top=(y+2.4)+'%'; };
+
+/* pointer parallax */
+addEventListener('pointermove',e=>{
+  if(REDUCED) return;
+  const r=pitch3d.parentElement.getBoundingClientRect();
+  const dx=(e.clientX-(r.left+r.width/2))/r.width, dy=(e.clientY-(r.top+r.height/2))/r.height;
+  pitch3d.style.transform=`rotateX(${26 - dy*6}deg) rotateY(${dx*7}deg) rotateZ(${dx*1.2}deg)`;
+},{passive:true});
+
+/* ---------- canvas ambience (particles) ---------- */
+(function particles(){
+  const c=document.getElementById('particles'), g=c.getContext('2d');
+  let w,h,parts=[];
+  const resize=()=>{ w=c.width=c.offsetWidth; h=c.height=c.offsetHeight;
+    parts=Array.from({length: Math.min(70, Math.round(w/22))},()=>({
+      x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.8+.4,s:Math.random()*.25+.05,a:Math.random()*.5+.15
+    })); };
+  resize(); addEventListener('resize',resize);
+  (function loop(){ if(!REDUCED){ g.clearRect(0,0,w,h);
+    for(const p of parts){ p.y-=p.s; if(p.y< -4){p.y=h+4;p.x=Math.random()*w;}
+      g.beginPath(); g.arc(p.x,p.y,p.r,0,7); g.fillStyle=`rgba(160,200,255,${p.a*0.5})`; g.fill(); } }
+    requestAnimationFrame(loop); })();
+})();
+
+/* ---------- HUD ---------- */
+function momentumAt(t){ const M=D.momentum; if(!M.length) return 0;
+  for(let i=0;i<M.length;i++) if(M[i+1]&&t<M[i+1].t) return M[i].v; return M[M.length-1].v; }
+const fmt=t=>`${Math.floor(t/60)}'`;
+
+function renderHUD(){
+  const st=stateAt(state.t), ev=st.events.length?st.events[st.events.length-1]:null;
+  document.getElementById('clock').textContent=fmt(state.t);
+  document.getElementById('tlabel').textContent=fmt(state.t);
+  document.getElementById('score').textContent=`${st.score.home}–${st.score.away}`;
+  if(ev){
+    const xgh=ev.xg_home||0, xga=ev.xg_away||0, wp=ev.win_prob_home||.5;
+    document.getElementById('xgh').textContent=xgh.toFixed(2);
+    document.getElementById('xga').textContent=xga.toFixed(2);
+    document.getElementById('wph').textContent=Math.round(wp*100)+'%';
+    document.getElementById('xgHome2').textContent=xgh.toFixed(2);
+    document.getElementById('xgAway2').textContent=xga.toFixed(2);
+    const tot=Math.max(xgh+xga,.01);
+    document.getElementById('xgFillH').style.width=(xgh/tot*100)+'%';
+    document.getElementById('xgFillA').style.width=(xga/tot*100)+'%';
+    document.getElementById('wpVal').textContent=Math.round(wp*100)+'%';
+    document.getElementById('wpRing').setAttribute('stroke-dashoffset', String(195*(1-wp)));
+    px(ev.x, ev.y);
+  }
+  const v=momentumAt(state.t), mag=Math.min(Math.abs(v)/6,1)*50;
+  document.getElementById('mom').dataset.v=v; document.getElementById('mom').dataset.mag=mag;
+  drawMomentum(v,mag);
+}
+/* momentum area chart */
+function drawMomentum(v,mag){
+  const c=document.getElementById('mom'), g=c.getContext('2d');
+  const W=c.width,H=c.height,mid=H/2;
+  g.clearRect(0,0,W,H);
+  const M=D.momentum; if(!M.length) return;
+  const maxT=MAXT, cur=state.t;
+  g.beginPath(); g.moveTo(0,mid);
+  for(let i=0;i<M.length;i++){
+    const x=(M[i].t/maxT)*W; const y=mid-(M[i].v/6)*(mid-4);
+    g.lineTo(Math.min(x, (cur/maxT)*W), y);
+  }
+  g.lineTo(Math.min((cur/maxT)*W, W), mid); g.closePath();
+  const grd=g.createLinearGradient(0,0,0,H);
+  grd.addColorStop(0, v>=0?'rgba(63,225,242,.4)':'rgba(247,173,60,.4)');
+  grd.addColorStop(1,'rgba(255,255,255,0)');
+  g.fillStyle=grd; g.fill();
+  g.strokeStyle= v>=0?P.home:P.away; g.lineWidth=1.6; g.stroke();
+  g.beginPath(); g.moveTo(0,mid); g.lineTo((cur/maxT)*W,mid); g.strokeStyle='rgba(255,255,255,.12)'; g.stroke();
+}
+
+/* ---------- cinematic ---------- */
+function shockwave(teamAccent){
+  if(REDUCED) return;
+  const host=document.getElementById('ball').parentElement;
+  const s=document.createElement('div'); s.className='shock';
+  s.style.left=ball.style.left; s.style.top=ball.style.top;
+  s.style.borderColor=teamAccent||'var(--live)'; host.appendChild(s); setTimeout(()=>s.remove(),1000);
+}
+function sweep(){ const s=document.getElementById('sweep'); s.classList.remove('go'); void s.offsetWidth; s.classList.add('go'); }
+function kinetic(text){ if(REDUCED) return; const gw=document.getElementById('goalword'); document.getElementById('goaltext').textContent=text;
+  gw.classList.remove('on'); void gw.offsetWidth; gw.classList.add('on'); }
+
+/* ---------- modes / personalization ---------- */
+function register(){ return state.mode==='analyst'?'analyst':(state.mode==='accessible'?'cognitive':'casual'); }
+function inFocus(c){
+  if(!state.focus) return true;
+  if(state.focus.startsWith('p:')) return c.player===state.focus.slice(2);
+  if(state.focus.startsWith('t:')) return c.team===state.focus.slice(2);
+  return true;
+}
+function hapticPattern(p){ return ({surge:[40,30,40,30,120],pulse:[30,40,30],tap:[18],rumble:[60,40,60],
+  wave:[20,30,20,30],flat:[10],tighten:[80,60,80],double:[50,60,50]})[p]||[30]; }
+function hapticBars(intensity,on){
+  const pad=document.getElementById('hapticPad');
+  if(!pad.children.length) for(let i=0;i<30;i++){const b=document.createElement('b');pad.appendChild(b);}
+  [...pad.children].forEach((b,i)=>{ const c=Math.exp(-Math.pow((i-15)/7.5,2));
+    b.style.height=(on?6+intensity*c*22*(0.7+Math.random()*0.3):7)+'px'; b.style.background=on?'var(--live)':'var(--calm)'; });
+  pad.classList.toggle('on',on); setTimeout(()=>[...pad.children].forEach(b=>b.style.height='7px'),240);
+}
+function glyph(cls){ if(REDUCED||state.mode==='analyst') return; /* handled via shockwave/kinetic now */ }
+
+function emitCue(cue, st, silent){
+  if(!inFocus(cue)) return;
+  state.cur=cue;
+  const reg=register();
+  const caps=cue.caption[state.lang]||cue.caption.en;
+  const verdict=verify(cue.claim, st);
+  const stale=!verdict.accepted && verdict.reason.includes('stale');
+  const cap=document.getElementById('caption');
+  document.getElementById('kindline').textContent=`${cue.kind} · ${cue.minute} · salience ${cue.salience}`;
+  cap.innerHTML=(stale?'<span class="sup">Superseded — source event corrected</span>':'')+caps[reg];
+  document.getElementById('cueKind').textContent=cue.kind.toUpperCase();
+
+  const m=cue.metrics, chips=[];
+  if(cue.player) chips.push(`player <b>${cue.player}</b>`);
+  if(m.xg!=null) chips.push(`xG <b>${(+m.xg).toFixed(2)}</b>`);
+  if(m.xt!=null) chips.push(`xT <b>${(+m.xt).toFixed(3)}</b>`);
+  if(m.xt_gain!=null) chips.push(`ΔxT <b>${(+m.xt_gain>=0?'+':'')}${(+m.xt_gain).toFixed(3)}</b>`);
+  chips.push(`evidence <b>#${cue.claim.event_id}·r${cue.claim.revision||1}</b>`);
+  document.getElementById('evidence').innerHTML=chips.map(c=>`<span class="c">${c}</span>`).join('');
+
+  const vb=document.getElementById('verdict'); vb.hidden=false;
+  vb.className='verdict '+(verdict.accepted?'ok':'bad');
+  vb.innerHTML=`${verdict.accepted?'✓ Verified before air':'✕ Blocked'} — ${reg}<small>${verdict.reason}</small>`;
+  const ap=document.getElementById('auditPill'); ap.classList.toggle('blocked',!verdict.accepted);
+  document.getElementById('auditBadge').textContent=verdict.accepted?'VERIFIED':'BLOCKED';
+
+  if(!silent){
+    if(cue.kind==='goal'){ kinetic('GOAL'); sweep(); shockwave('var(--live)'); window.ROAR_SCENE&&window.ROAR_SCENE.flash(1); trail.style.background=`radial-gradient(circle,${P[cue.team]||'#fff'},transparent 70%)`; trail.style.opacity='.9'; setTimeout(()=>trail.style.opacity='0',700); }
+    else if(cue.kind==='correction'){ kinetic('REVISED'); sweep(); shockwave('var(--live)'); window.ROAR_SCENE&&window.ROAR_SCENE.flash(.6); }
+    else if(cue.kind==='chance'||cue.kind==='danger'){ shockwave('var(--danger)'); }
+    else if(cue.kind==='press'||cue.kind==='tension'){ shockwave('var(--press)'); }
+  }
+
+  const on = state.hapticOn && state.mode==='accessible' && cue.kind!=='calm';
+  hapticBars(cue.haptic.intensity,on);
+  if(on && navigator.vibrate) navigator.vibrate(hapticPattern(cue.haptic.pattern));
+
+  const feed=document.getElementById('feed');
+  [...feed.children].forEach(c=>c.classList.remove('on'));
+  const it=document.createElement('div'); it.className='it on'+(stale?' sup':'');
+  it.innerHTML=`<span class="m">${cue.minute}</span><span>${caps.casual}</span>`;
+  feed.prepend(it); while(feed.children.length>40) feed.lastChild.remove();
+
+  const vl=document.getElementById('varline');
+  if(cue.kind==='correction'){ vl.classList.add('on'); vl.textContent='Revision 2 — '+caps.casual; }
+  else vl.classList.remove('on');
+}
+
+
+/* ---------- demo director: one-take 2-minute recording script (?demo=1) ---------- */
+const DEMO = [
+  { at:0.0,  do:()=>{ startCard("SOUND OFF. STILL FELT.", "ROAR turns synthetic match events into a sensory, verified broadcast."); } },
+  { at:4.0,  do:()=>{ hideCard(); seek(1530); play(); } },            // build-up to a chance
+  { at:9.0,  do:()=>{ seek(1810); } },                                 // approach the goal
+  { at:12.0, do:()=>{ banner("GOAL — every cue carries its evidence"); } },
+  { at:20.0, do:()=>{ pause(); setMode('analyst'); banner("ANALYST MODE — same moment, deeper register"); } },
+  { at:27.0, do:()=>{ setMode('accessible'); setLang('es'); banner("PERSONALIZED — Español, accessible register"); } },
+  { at:34.0, do:()=>{ setLang('en'); play(); } },
+  { at:38.0, do:()=>{ seek(4130); banner("VAR OVERTURNS THE GOAL — revision 2 arrives"); } },
+  { at:45.0, do:()=>{ seek(4260); } },                                 // correction cue fires
+  { at:50.0, do:()=>{ pause(); document.getElementById('testWrong').click(); banner("THE VERIFIER BLOCKS A FALSE CLAIM"); } },
+  { at:58.0, do:()=>{ document.getElementById('testUnsupported').click(); } },
+  { at:66.0, do:()=>{ seek(5380); play(); } },                         // full time
+  { at:72.0, do:()=>{ pause(); startCard("ROAR", "Ingest → Interpret → Explain → Render → Personalize. Every claim verified before air."); } },
+  { at:82.0, do:()=>{ hideCard(); } },
+];
+let demoT0 = 0, demoIdx = 0, demoRAF = 0;
+
+function startCard(title, sub){
+  let el = document.getElementById('democard');
+  if(!el){ el = document.createElement('div'); el.id='democard'; el.className='democard';
+    el.innerHTML = '<div class="dt"></div><div class="ds"></div>'; document.body.appendChild(el); }
+  el.querySelector('.dt').textContent = title;
+  el.querySelector('.ds').textContent = sub;
+  el.classList.add('on');
+}
+function hideCard(){ const el=document.getElementById('democard'); if(el) el.classList.remove('on'); }
+function banner(text){
+  const el=document.getElementById('demobanner');
+  el.textContent = text; el.classList.add('on');
+  clearTimeout(el._t); el._t = setTimeout(()=>el.classList.remove('on'), 3600);
+}
+function seek(t){ state.t = Math.min(MAXT, t);
+  state.cueIdx = D.cues.findIndex(c=>c.t>state.t); if(state.cueIdx<0) state.cueIdx=D.cues.length;
+  document.getElementById('scrub').value = Math.floor(state.t);
+  const st = stateAt(state.t);
+  for(let i=0;i<state.cueIdx;i++) if(inFocus(D.cues[i])) emitCue(D.cues[i], st, true);
+  renderHUD();
+}
+function play(){ setPlaying(true); }
+function pause(){ setPlaying(false); }
+function setMode(m){ const b=document.querySelector(`#modeSeg button[data-m="${m}"]`); if(b) b.click(); }
+function setLang(l){ const el=document.getElementById('lang'); el.value=l; el.dispatchEvent(new Event('change')); }
+
+function runDemo(){
+  document.getElementById('start').style.display='none';
+  document.getElementById('play').style.display='none';
+  const el=document.createElement('div'); el.id='demobanner'; el.className='demobanner';
+  document.body.appendChild(el);
+  demoT0 = performance.now();
+  (function tick(){
+    const s=(performance.now()-demoT0)/1000;
+    while(demoIdx<DEMO.length && DEMO[demoIdx].at<=s){ try{ DEMO[demoIdx].do(); }catch(e){ console.warn(e); } demoIdx++; }
+    if(demoIdx<DEMO.length) demoRAF=requestAnimationFrame(tick);
+  })();
+}
+
+/* ---------- loop ---------- */
+function frame(ts){
+  if(!state.lastFrame) state.lastFrame=ts;
+  const dt=(ts-state.lastFrame)/1000; state.lastFrame=ts;
+  if(state.playing){
+    state.t+=dt*60*state.speed;
+    if(state.t>=MAXT){ state.t=MAXT; setPlaying(false); }
+    document.getElementById('scrub').value=Math.floor(state.t);
+    const st=stateAt(state.t); renderHUD();
+    while(state.cueIdx<D.cues.length && D.cues[state.cueIdx].t<=state.t){ emitCue(D.cues[state.cueIdx], st); state.cueIdx++; }
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ---------- controls ---------- */
+const PLAY_SVG='<path d="M8 5v14l11-7z" fill="currentColor"/>';
+const PAUSE_SVG='<path d="M6 5h4v14H6zM14 5h4v14h-4z" fill="currentColor"/>';
+function setPlaying(p){ state.playing=p;
+  document.getElementById('playIcon').innerHTML=p?PAUSE_SVG:PLAY_SVG;
+  document.getElementById('playLabel').textContent=p?'Pause':'Play'; }
+document.getElementById('play').onclick=()=>setPlaying(!state.playing);
+document.getElementById('startBtn').onclick=()=>{ document.getElementById('start').style.display='none'; setPlaying(true); };
+document.getElementById('scrub').oninput=(e)=>{ state.t=+e.target.value;
+  state.cueIdx=D.cues.findIndex(c=>c.t>state.t); if(state.cueIdx<0) state.cueIdx=D.cues.length;
+  document.getElementById('feed').innerHTML=''; renderHUD(); };
+document.getElementById('modeSeg').onclick=(e)=>{ const b=e.target.closest('button'); if(!b)return;
+  [...e.currentTarget.children].forEach(x=>x.classList.remove('on')); b.classList.add('on');
+  state.mode=b.dataset.m; state.hapticOn=state.mode==='accessible';
+  document.getElementById('badgeMode').textContent=b.textContent.toUpperCase();
+  document.getElementById('badgeHaptic').textContent=state.hapticOn?'ON':'OFF'; };
+document.getElementById('speedSeg').onclick=(e)=>{ const b=e.target.closest('button'); if(!b)return;
+  [...e.currentTarget.children].forEach(x=>x.classList.remove('on')); b.classList.add('on'); state.speed=+b.dataset.s; };
+document.getElementById('lang').onchange=(e)=>{ state.lang=e.target.value;
+  if(state.cur){ const caps=state.cur.caption[state.lang]||state.cur.caption.en;
+    document.getElementById('caption').innerHTML=caps[register()]; } };
+const focusSel=document.getElementById('focus');
+const uniq=[...new Set(D.events.filter(e=>e.player&&e.type!=='goal').map(e=>e.player))].sort();
+focusSel.innerHTML=`<option value="">Whole match</option>`+
+  [['home',D.meta.home],['away',D.meta.away]].map(([k,n])=>`<option value="t:${k}">Club · ${n}</option>`).join('')+
+  uniq.map(p=>`<option value="p:${p}">Player · ${p}</option>`).join('');
+focusSel.onchange=(e)=>{ state.focus=e.target.value;
+  document.getElementById('badgeFeed').textContent=state.focus?e.target.selectedOptions[0].textContent:'ALL';
+  document.getElementById('feed').innerHTML='';
+  state.cueIdx=D.cues.findIndex(c=>c.t>state.t); if(state.cueIdx<0) state.cueIdx=D.cues.length; };
+document.getElementById('testWrong').onclick=()=>{ if(!state.cur)return;
+  const st=stateAt(state.t), bad={...state.cur.claim, outcome: state.cur.claim.outcome==='goal'?'saved':'goal'};
+  const v=verify(bad,st), box=document.getElementById('auditBox'); box.className='verdict '+(v.accepted?'ok':'bad');
+  box.innerHTML=`Test: outcome “${bad.outcome}” → <b>${v.accepted?'ACCEPTED':'BLOCKED'}</b><small>${v.reason}</small>`; };
+document.getElementById('testUnsupported').onclick=()=>{ if(!state.cur)return;
+  const st=stateAt(state.t), bad={kind:'certain_goal', event_id:state.cur.claim.event_id};
+  const v=verify(bad,st), box=document.getElementById('auditBox'); box.className='verdict '+(v.accepted?'ok':'bad');
+  box.innerHTML=`Test: “certain_goal” → <b>${v.accepted?'ACCEPTED':'BLOCKED'}</b><small>${v.reason}</small>`; };
+document.getElementById('export').onclick=()=>{ const st=stateAt(state.t);
+  const blob=new Blob([JSON.stringify({source:'ROAR synthetic replay',clock:state.t,score:st.score,audit:D.audit,correction:D.correction},null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob), a=document.createElement('a'); a.href=url; a.download=`roar-recap-${Math.floor(state.t)}s.json`; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000); };
+
+document.getElementById('tHome').textContent=D.meta.home;
+document.getElementById('tAway').textContent=D.meta.away;
+renderHUD();
+const q=new URLSearchParams(location.search);
+if(q.get('t')){ state.t=+q.get('t'); state.cueIdx=D.cues.findIndex(c=>c.t>state.t); if(state.cueIdx<0) state.cueIdx=D.cues.length;
+  document.getElementById('scrub').value=Math.floor(state.t); const st=stateAt(state.t);
+  for(let i=0;i<state.cueIdx;i++) if(inFocus(D.cues[i])) emitCue(D.cues[i], st, true); renderHUD(); }
+if(location.search.includes('demo')){ runDemo(); }
+else if(location.search.includes('auto')){ document.getElementById('start').style.display='none'; setPlaying(true); }
+</script>
+</body>
+</html>

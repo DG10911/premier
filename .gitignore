@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.DS_Store
+.context/
+resume/
+design/
+access_server.py
+web/access/
+engine/access_director.py
+tests/test_access_director.py
