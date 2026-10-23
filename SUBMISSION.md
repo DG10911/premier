@@ -29,7 +29,7 @@ win-probability, xG and momentum — personalized for **Accessible**, **Casual**
 2. **Interpret** — `engine/analytics.py`: Expected Threat learned from the match's
    own pass network, xG, ΔxT, momentum, in-game win probability, salience.
 3. **Explain** — `engine/perception.py`: multi-agent supervisor + specialists.
-4. **Render** — `web/app/`: 3D pitch, glyphs, haptics, captions, evidence panel.
+4. **Render** — `web/app/`: WebGL stadium replay, glyphs, haptics (vibration + on-screen shockwaves), captions, verification chain.
 5. **Personalize** — mode × language × focus, driven by viewer profile.
 
 Plus the differentiator: **`engine/verify.py`** — a revision-aware typed-fact audit
@@ -60,4 +60,4 @@ no third-party image assets.
 
 ## Links
 - Repo: `https://github.com/DG10911/premier`
-- Demo: `http://localhost:8788/web/app/?demo=1` (local; see README to run)
+- Demo: `http://localhost:8788/web/app/?auto=highlights` (local; see README to run)

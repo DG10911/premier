@@ -79,13 +79,20 @@ OUTCOME_LABEL = {
 
 
 def _score_at(events, t, inclusive=False):
-    """(home, away) goals scored before t."""
-    h = a = 0
+    """(home, away) goals standing before t, revision-aware: a goal that VAR
+    has already disallowed by t (a newer revision has arrived) does not count."""
+    latest = {}
     for e in events:
+        arr = e.get("arrival", e["t"])
+        ok = (arr <= t) if inclusive else (arr < t)
+        if not ok:
+            continue
+        cur = latest.get(e["id"])
+        if cur is None or e.get("revision", 1) >= cur.get("revision", 1):
+            latest[e["id"]] = e
+    h = a = 0
+    for e in latest.values():
         if e["type"] == "goal" and e.get("outcome") == "scored":
-            ok = (e["t"] <= t) if inclusive else (e["t"] < t)
-            if not ok:
-                continue
             if e["team"] == "home":
                 h += 1
             else:
@@ -97,6 +104,8 @@ def build_moments(analysed: dict, corrected=None) -> list:
     """The story of the match: only the moments that changed something."""
     events = analysed["events"]
     meta = analysed["meta"]
+    # score is revision-aware: once VAR's revision has arrived, the disallowed goal no longer counts
+    score_events = events + ([corrected] if corrected else [])
 
     shots = [e for e in events if e["type"] == "shot"]
     goals = [e for e in shots if e.get("outcome") == "goal"]
@@ -119,7 +128,7 @@ def build_moments(analysed: dict, corrected=None) -> list:
         best_so_far = xg > best_xg and xg >= 0.10
         best_xg = max(best_xg, xg)
 
-        bh, ba = _score_at(events, e["t"])
+        bh, ba = _score_at(score_events, e["t"])
         ah, aa = bh, ba
         if e["type"] == "shot" and e.get("outcome") == "goal":
             if is_home:

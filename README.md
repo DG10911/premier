@@ -43,8 +43,8 @@ Nothing is generated without a number behind it. The narrative agents can only
 | **2. Interpret** | `engine/analytics.py` | Expected Threat (learned from the match's own pass network), xG, ΔxT, momentum, win probability, salience. |
 | **3. Explain** | `engine/perception.py` | Multi-agent layer: Salience → Explain → Glyph → Haptic → Spatial → **Guardrail (veto)** → Director. Grounded captions. |
 | **3b. Audit** | `engine/verify.py` | **Verification rail.** Every cue carries a typed fact; a claim airs only if actor, team, type, outcome and revision match the evidence available at the viewer's clock. Supports **live corrections** (a goal overturned by VAR). |
-| **4. Render** | `web/app/` | Real-3D canvas pitch (perspective camera, mown turf, floodlight pools, depth-sorted player discs), procedural stadium scene, broadcast score bug, lower-third graphics, kinetics, momentum ribbon, **haptic pad** + real device vibration. |
-| **5. Personalize** | `web/app/index.html` | **Mode** (Accessible · Casual · Analyst), **Language** (en/es/fr/sw), **Focus** (whole match · club · player). |
+| **4. Render** | `web/app/` | **WebGL stadium** (Three.js): floodlit 105×68 m pitch, a 35k-seat crowd that erupts on goals, LED perimeter boards, rippling goal nets, 22 animated players, ball flight with trail, xG cone, a camera director that cuts every moment like a broadcast (side-on → reverse angle → top-down VAR room). Haptic cues render as **shockwaves on the turf** and a pulsing screen edge, plus real device vibration. |
+| **5. Personalize** | `web/app/index.html` | **Mode** (Accessible · Casual · Analyst) selects the caption register and detail level; **Language** (en/es/fr/sw). |
 
 ## The verification rail (our differentiator)
 
@@ -83,6 +83,9 @@ No third-party dependencies — Python 3.9+ and any browser.
 python3 engine/build.py            # generate + analyse + explain + verify -> web/app/data.js
 python3 -m http.server 8788        # serve from the repo root
 # open http://localhost:8788/web/app/
+# ?auto=highlights  — 45-second demo cut (goals, a save, a block, the VAR overturn, recap)
+# ?auto             — the full 18-moment story
+# ?m=16             — jump straight to a moment (0-based); add &mode=analyst&lang=es
 ```
 
 Regenerate a different match: `python3 engine/build.py <seed>`.
@@ -98,9 +101,9 @@ engine/analytics.py    xT / xG / momentum / win-prob        (Interpret)
 engine/perception.py   multi-agent perception compiler      (Explain)
 engine/verify.py       typed-fact verification rail         (Audit)
 engine/build.py        pipeline runner -> web/app/data.js    (Render prep)
-web/app/index.html     broadcast console: graphics, haptics, audit (Render + Personalize)
-web/app/pitch.js       real-3D canvas pitch renderer (camera projection)
-web/app/scene.js       procedural stadium scene (crowd, beams, flash)
+web/app/index.html     console HUD: sensory caption, haptic track, verification chain, timeline (Render + Personalize)
+web/app/stage.js       Three.js stadium stage + camera director (WebGL)
+web/app/vendor/        vendored three.js r186 (MIT) — works offline, no build step
 web/app/data.js        the compiled bundle the console loads
 tests/                 integrity, verification & bundle tests
 ```
