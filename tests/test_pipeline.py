@@ -53,6 +53,15 @@ class BundleTests(unittest.TestCase):
         # audit includes deliberately blocked examples
         self.assertTrue(any(not a["accepted"] for a in b["audit"]))
 
+    def test_moment_scores_respect_var_correction(self):
+        b = build_bundle(seed=42)
+        at = b["correction"]["at"]
+        for m in b["moments"]:
+            if m["t"] > at:
+                st = state_at(b["events"], m["t"])
+                want = f"{st['score']['home']}\u2013{st['score']['away']}"
+                self.assertEqual(m["score_before"], want, m["title"])
+
     def test_deterministic(self):
         self.assertEqual(build_bundle(7)["cues"], build_bundle(7)["cues"])
 
